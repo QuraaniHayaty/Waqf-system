@@ -294,12 +294,14 @@
             });
         }
 
-        function addUnitRow(containerId, type = 'محل', count = '', nums = '') {
+        /* تعديل دالة إضافة صف الوحدة لتكون القيمة الافتراضية "نوع الوحدة" غير قابلة للاختيار */
+        function addUnitRow(containerId, type = '', count = '', nums = '') {
             let container = document.getElementById(containerId);
             let row = document.createElement('div');
             row.className = 'unit-row';
             row.innerHTML = `
                 <select class="unit-type">
+                    <option value="" disabled ${type===''?'selected':''}>نوع الوحدة</option>
                     <option value="محل" ${type==='محل'?'selected':''}>محل</option>
                     <option value="شقة" ${type==='شقة'?'selected':''}>شقة</option>
                     <option value="مخزن" ${type==='مخزن'?'selected':''}>مخزن</option>
@@ -372,15 +374,24 @@
 
             let unitsArr = [];
             let totalSum = 0;
+            let isValid = true;
+            
             document.querySelectorAll('#edit-units-container .unit-row').forEach(r => {
+                let t = r.querySelector('.unit-type').value;
                 let cnt = parseInt(r.querySelector('.unit-count').value) || 0;
+                if(!t) { isValid = false; }
                 totalSum += cnt;
                 unitsArr.push({
-                    type: r.querySelector('.unit-type').value,
+                    type: t,
                     count: cnt,
                     nums: r.querySelector('.unit-nums').value
                 });
             });
+
+            if(!isValid) {
+                alert('الرجاء اختيار نوع الوحدة لكل السطور المضافة');
+                return;
+            }
 
             row.querySelector('.prop-name').innerText = name;
             row.querySelector('.prop-location').innerText = location;
@@ -396,7 +407,7 @@
             document.getElementById('addPropName').value = '';
             document.getElementById('addPropLocation').value = '';
             document.getElementById('add-units-container').innerHTML = '';
-            addUnitRow('add-units-container', 'محل', '', '');
+            addUnitRow('add-units-container', '', '', '');
             document.getElementById('addModal').style.display = 'flex';
         }
 
@@ -415,15 +426,24 @@
 
             let unitsArr = [];
             let totalSum = 0;
+            let isValid = true;
+
             document.querySelectorAll('#add-units-container .unit-row').forEach(r => {
+                let t = r.querySelector('.unit-type').value;
                 let cnt = parseInt(r.querySelector('.unit-count').value) || 0;
+                if(!t) { isValid = false; }
                 totalSum += cnt;
                 unitsArr.push({
-                    type: r.querySelector('.unit-type').value,
+                    type: t,
                     count: cnt,
                     nums: r.querySelector('.unit-nums').value
                 });
             });
+
+            if(!isValid) {
+                alert('الرجاء اختيار نوع الوحدة لكل السطور المضافة');
+                return;
+            }
 
             propertyCount++;
             let newId = propertyCount;
