@@ -8,7 +8,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background-color: #f4f6f9; display: flex; height: 100vh; overflow: hidden; direction: rtl; text-align: right; }
         
-        /* القائمة الجانبية باللون الدافئ المتناسق */
+        /* القائمة الجانبية باللون الدافئ */
         aside { width: 285px; height: 100vh; background-color: #fcf6f5; border-left: 1px solid #f2e8e6; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
         
         /* الشعار وحده في الشريط الجانبي */
@@ -30,8 +30,8 @@
         /* مساحة المحتوى الرئيسية */
         main { flex-grow: 1; display: flex; flex-direction: column; background-color: #f9fafb; overflow-y: auto; height: 100vh; }
         
-        /* الشريط العلوي المستقل فوق الصفحة تماماً مثل قرآني حياتي */
-        .top-header-bar { background-color: #ffffff; padding: 15px 30px; border-bottom: 1px solid #eef0f2; text-align: left; font-size: 16px; font-weight: bold; color: #2c3e50; }
+        /* الشريط العلوي بنفس لون الشريط الجانبي المائل للوردي ومحاذاة النص لليمين وبحجم خط كبير */
+        .top-header-bar { background-color: #fcf6f5; padding: 15px 30px; border-bottom: 1px solid #f2e8e6; text-align: right; font-size: 20px; font-weight: bold; color: #2c3e50; }
         
         .top-banner { background-color: #27ae60; color: white; margin: 25px; padding: 30px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
         .banner-title h1 { font-size: 26px; margin-bottom: 8px; font-weight: bold; }
@@ -59,7 +59,7 @@
         </div>
     </aside>
     <main>
-        <!-- الشريط العلوي الذي يظهر في أعلى الصفحة بالكامل مثل موقع قرآني حياتي -->
+        <!-- الشريط العلوي المطابق للون الشريط الجانبي ومحاذاة النص لليمين -->
         <div class="top-header-bar">
             وقف تعليم القرآن الكريم والعلوم الشرعية بقرية الروضة
         </div>
@@ -71,7 +71,7 @@
             </div>
         </div>
         <div class="content-area">
-            <p>تم نقل اسم الوقف إلى الشريط العلوي فوق الصفحة بالكامل مطابهاً تماماً لموقع قرآني حياتي. أخبرني هل النتيجة الآن مضبوطة 100% لنبدأ فوراً بالأقسام البرمجية؟</p>
+            <p>تم تكبير الخط، ضبط المحاذاة لليمين، وتوحيد لون الشريط العلوي مع الشريط الجانبي تماماً مطابهاً لموقع قرآني حياتي. أخبرني هل النتيجة الآن مثالية لنبدأ ببرمجة الأقسام؟</p>
         </div>
     </main>
 </body>
