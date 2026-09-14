@@ -45,12 +45,12 @@
         th { background-color: #f8f9fa; color: #2e5a36; font-weight: 600; }
         tr:hover { background-color: #fcfcfc; }
         
-        .btn-action-edit { background: #eef2f5; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #333; }
-        .btn-action-archive { background: #fef3c7; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #d97706; }
-        .btn-action-delete { background: #fee2e2; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #dc2626; }
+        .btn-action-edit { background: #eef2f5; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; color: #333; }
+        .btn-action-renew { background: #dbeafe; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; color: #1e40af; }
+        .btn-action-archive { background: #fef3c7; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; color: #d97706; }
+        .btn-action-delete { background: #fee2e2; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; color: #dc2626; }
         .btn-action-restore { background: #dcfce7; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #166534; }
 
-        /* شارات التنبيه (الحالة) */
         .badge-active { background-color: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin-top: 3px; }
         .badge-expired { background-color: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin-top: 3px; }
 
@@ -112,7 +112,7 @@
         <div class="top-banner">
             <div class="banner-title">
                 <h1>عقود الإيجارات</h1>
-                <p>متابعة حالة العقود وتنبيهات الصلاحية (ساري / منتهي)</p>
+                <p>إدارة وإبرام وتجديد عقود الإيجار ومتابعة الصلاحية والأرشيف</p>
             </div>
         </div>
 
@@ -155,8 +155,9 @@
                             </div>
                         </td>
                         <td>
-                            <div style="display:flex; gap:5px; align-items:center;">
+                            <div style="display:flex; gap:4px; align-items:center;">
                                 <button onclick="openEditLeaseModal(1)" class="btn-action-edit">تعديل</button>
+                                <button onclick="openRenewLeaseModal(1)" class="btn-action-renew">تجديد</button>
                                 <button onclick="archiveLease(1)" class="btn-action-archive">أرشيف</button>
                                 <button onclick="deleteLease(1)" class="btn-action-delete">حذف</button>
                             </div>
@@ -220,7 +221,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-top: 15px;">
                     <label>القيمة الإيجارية الشهرية (ر.ع)</label>
                     <input type="number" id="leaseAmount" placeholder="أدخل المبلغ">
                 </div>
@@ -282,7 +283,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-top: 15px;">
                     <label>القيمة الإيجارية الشهرية (ر.ع)</label>
                     <input type="number" id="editLeaseAmount">
                 </div>
@@ -299,11 +300,73 @@
         </div>
     </div>
 
+    <!-- نافذة تجديد العقد (تحمل كامل البيانات والمرفقات السابقة للتعديل والأرشفة) -->
+    <div id="renewLeaseModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تجديد عقد الإيجار</h3>
+                <button class="close-modal" onclick="closeRenewLeaseModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="renewLeaseId">
+                <div class="form-group">
+                    <label>اختر العقار</label>
+                    <select id="renewLeasePropSelect" onchange="loadFloatsForProperty('renewLeasePropSelect', 'renewLeaseFloorSelect', 'renewLeaseUnitSelect')">
+                        <option value="عمارة الروضة التجارية">عمارة الروضة التجارية</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اختر الطابق</label>
+                    <select id="renewLeaseFloorSelect" onchange="loadUnitsForFloor('renewLeasePropSelect', 'renewLeaseFloorSelect', 'renewLeaseUnitSelect')">
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اختر الوحدة</label>
+                    <select id="renewLeaseUnitSelect">
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اسم المستأجر</label>
+                    <input type="text" id="renewLeaseTenant">
+                </div>
+                <div class="form-group">
+                    <label>رقم هاتف المستأجر</label>
+                    <input type="text" id="renewLeasePhone">
+                </div>
+
+                <div class="date-row">
+                    <div class="form-group">
+                        <label>تاريخ بداية العقد الجديد (من)</label>
+                        <input type="date" id="renewLeaseStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ نهاية العقد الجديد (إلى)</label>
+                        <input type="date" id="renewLeaseEndDate">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>القيمة الإيجارية الشهرية الجديدة (ر.ع)</label>
+                    <input type="number" id="renewLeaseAmount">
+                </div>
+
+                <div class="form-group">
+                    <label>مرفقات العقد والمستندات (السجل التجاري، البطاقات، إلخ)</label>
+                    <div id="renew-attachments-container"></div>
+                    <button type="button" class="btn-add-attachment" onclick="addAttachmentRow('renew-attachments-container')">➕ إضافة مرفق جديد</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-save" onclick="saveRenewLeaseChanges()">أرشفة القديم وحفظ التجديد</button>
+            </div>
+        </div>
+    </div>
+
     <!-- نافذة أرشيف العقود المنتهية -->
     <div id="archiveModal" class="modal-overlay">
         <div class="modal-box" style="width: 900px;">
             <div class="modal-header">
-                <h3>أرشيف عقود الإيجار المنتهية</h3>
+                <h3>أرشيف عقود الإيجار المنتهية والمجددة</h3>
                 <button class="close-modal" onclick="closeArchiveModal()">&times;</button>
             </div>
             <div class="modal-body">
@@ -345,8 +408,6 @@
         let archiveData = [];
         let archiveCurrentPage = 1;
         const archiveRowsPerPage = 10;
-        
-        // تاريخ اليوم الحالي للمقارنة التلقائية (15 سبتمبر 2026)
         const currentDate = new Date('2026-09-15');
 
         function calculateDurationAndStatus(startDateStr, endDateStr) {
@@ -375,7 +436,6 @@
             };
         }
 
-        /* تحديث الصف الافتراضي عند التحميل */
         window.onload = function() {
             refreshTableDurations();
         };
@@ -445,6 +505,154 @@
             }
         }
 
+        /* فتح نافذة تجديد العقد المحملة بكامل البيانات والمرفقات السابقة */
+        function openRenewLeaseModal(id) {
+            let row = document.getElementById('lease-row-' + id);
+            let prop = row.getAttribute('data-prop');
+            let floor = row.getAttribute('data-floor');
+            let unit = row.getAttribute('data-unit');
+            let tenant = row.getAttribute('data-tenant');
+            let phone = row.getAttribute('data-phone');
+            let amount = row.getAttribute('data-amount');
+            let files = JSON.parse(row.getAttribute('data-files') || '[]');
+
+            document.getElementById('renewLeaseId').value = id;
+            document.getElementById('renewLeasePropSelect').value = prop;
+            
+            loadFloatsForProperty('renewLeasePropSelect', 'renewLeaseFloorSelect', 'renewLeaseUnitSelect');
+            document.getElementById('renewLeaseFloorSelect').value = floor;
+            
+            loadUnitsForFloor('renewLeasePropSelect', 'renewLeaseFloorSelect', 'renewLeaseUnitSelect');
+            document.getElementById('renewLeaseUnitSelect').value = unit;
+
+            document.getElementById('renewLeaseTenant').value = tenant;
+            document.getElementById('renewLeasePhone').value = phone;
+            document.getElementById('renewLeaseAmount').value = amount;
+            document.getElementById('renewLeaseStartDate').value = '';
+            document.getElementById('renewLeaseEndDate').value = '';
+
+            let attContainer = document.getElementById('renew-attachments-container');
+            attContainer.innerHTML = '';
+            
+            if(files.length > 0) {
+                files.forEach(f => {
+                    addAttachmentRow('renew-attachments-container', f);
+                });
+            } else {
+                addAttachmentRow('renew-attachments-container');
+            }
+
+            document.getElementById('renewLeaseModal').style.display = 'flex';
+        }
+
+        function closeRenewLeaseModal() {
+            document.getElementById('renewLeaseModal').style.display = 'none';
+        }
+
+        /* حفظ التجديد: أرشفة القديم وحفظ الجديد بالمرفقات والبيانات المحدثة */
+        function saveRenewLeaseChanges() {
+            let id = document.getElementById('renewLeaseId').value;
+            let row = document.getElementById('lease-row-' + id);
+
+            let prop = document.getElementById('renewLeasePropSelect').value;
+            let floor = document.getElementById('renewLeaseFloorSelect').value;
+            let unit = document.getElementById('renewLeaseUnitSelect').value;
+            let tenant = document.getElementById('renewLeaseTenant').value;
+            let phone = document.getElementById('renewLeasePhone').value;
+            let newAmount = document.getElementById('renewLeaseAmount').value;
+            let newStart = document.getElementById('renewLeaseStartDate').value;
+            let newEnd = document.getElementById('renewLeaseEndDate').value;
+
+            if(!newStart || !newEnd || !newAmount) {
+                alert('الرجاء تحديد تواريخ البداية والنهاية والقيمة الإيجارية الجديدة');
+                return;
+            }
+
+            // 1. أرشفة العقد الحالي أولاً
+            let oldProp = row.getAttribute('data-prop');
+            let oldFloor = row.getAttribute('data-floor');
+            let oldUnit = row.getAttribute('data-unit');
+            let oldTenant = row.getAttribute('data-tenant');
+            let oldPhone = row.getAttribute('data-phone');
+            let oldAmount = row.getAttribute('data-amount');
+            let oldStart = row.getAttribute('data-start');
+            let oldEnd = row.getAttribute('data-end');
+            let oldFiles = JSON.parse(row.getAttribute('data-files') || '[]');
+
+            archiveData.push({ id, prop: oldProp, floor: oldFloor, unit: oldUnit, tenant: oldTenant, phone: oldPhone, amount: oldAmount, start: oldStart, end: oldEnd, files: oldFiles });
+
+            // 2. معالجة المرفقات (المحدثة / المحذوفة / الجديدة)
+            let fileObjects = [];
+            let rows = document.querySelectorAll('#renew-attachments-container .attachment-row');
+            let processed = 0;
+
+            if(rows.length === 0) finishRenew([]);
+
+            rows.forEach((ar, idx) => {
+                let fi = ar.querySelector('.att-file');
+                let existingUrl = fi.getAttribute('data-url');
+                let existingName = fi.getAttribute('data-name');
+
+                if(fi.files.length > 0) {
+                    let file = fi.files[0];
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        fileObjects.push({ name: file.name, url: e.target.result });
+                        processed++;
+                        if(processed === rows.length) finishRenew(fileObjects);
+                    };
+                    reader.readAsDataURL(file);
+                } else if(existingName) {
+                    fileObjects.push({ name: existingName, url: existingUrl || '#' });
+                    processed++;
+                    if(processed === rows.length) finishRenew(fileObjects);
+                } else {
+                    processed++;
+                    if(processed === rows.length) finishRenew(fileObjects);
+                }
+            });
+
+            function finishRenew(filesArr) {
+                let res = calculateDurationAndStatus(newStart, newEnd);
+
+                row.setAttribute('data-prop', prop);
+                row.setAttribute('data-floor', floor);
+                row.setAttribute('data-unit', unit);
+                row.setAttribute('data-tenant', tenant);
+                row.setAttribute('data-phone', phone);
+                row.setAttribute('data-amount', newAmount);
+                row.setAttribute('data-start', newStart);
+                row.setAttribute('data-end', newEnd);
+                row.setAttribute('data-files', JSON.stringify(filesArr));
+
+                row.querySelector('.col-prop').innerText = prop;
+                row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
+                row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
+                row.querySelector('.col-duration').innerHTML = `<b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${newStart}<br>إلى: ${newEnd}</small>`;
+                row.querySelector('.col-amount').innerText = `${newAmount} ر.ع`;
+
+                let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
+                if(filesArr.length === 0) {
+                    filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
+                } else {
+                    filesArr.forEach(f => {
+                        filesHtml += `
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 ${f.name}</a>
+                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
+                            </div>
+                        `;
+                    });
+                }
+                filesHtml += '</div>';
+                row.querySelector('.col-files').innerHTML = filesHtml;
+
+                closeRenewLeaseModal();
+                updateArchiveTable();
+                alert('تم تجديد العقد بنجاح! ونقل العقد السابق إلى الأرشيف.');
+            }
+        }
+
         function restoreLease(index) {
             if(confirm('هل تريد استعادة هذا العقد وإعادته إلى قائمة عقود الإيجار النشطة؟')) {
                 let item = archiveData.splice(index, 1)[0];
@@ -489,8 +697,9 @@
                     <td class="col-amount">${item.amount} ر.ع</td>
                     <td class="col-files">${filesHtml}</td>
                     <td>
-                        <div style="display:flex; gap:5px; align-items:center;">
+                        <div style="display:flex; gap:4px; align-items:center;">
                             <button onclick="openEditLeaseModal(${rowCount})" class="btn-action-edit">تعديل</button>
+                            <button onclick="openRenewLeaseModal(${rowCount})" class="btn-action-renew">تجديد</button>
                             <button onclick="archiveLease(${rowCount})" class="btn-action-archive">أرشيف</button>
                             <button onclick="deleteLease(${rowCount})" class="btn-action-delete">حذف</button>
                         </div>
@@ -851,8 +1060,9 @@
                     <td class="col-amount">${amount} ر.ع</td>
                     <td class="col-files">${filesHtml}</td>
                     <td>
-                        <div style="display:flex; gap:5px; align-items:center;">
+                        <div style="display:flex; gap:4px; align-items:center;">
                             <button onclick="openEditLeaseModal(${rowCount})" class="btn-action-edit">تعديل</button>
+                            <button onclick="openRenewLeaseModal(${rowCount})" class="btn-action-renew">تجديد</button>
                             <button onclick="archiveLease(${rowCount})" class="btn-action-archive">أرشيف</button>
                             <button onclick="deleteLease(${rowCount})" class="btn-action-delete">حذف</button>
                         </div>
