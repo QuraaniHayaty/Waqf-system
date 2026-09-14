@@ -45,8 +45,8 @@
         </div>
         <div class="nav-container">
             <ul class="nav-menu">
-                <li><a href="#" class="active">لوحة التحكم</a></li>
-                <li><a href="#">بيانات عقارات الوقف</a></li>
+                <li><a href="index.php">لوحة التحكم</a></li>
+                <li><a href="properties.php" class="active">بيانات عقارات الوقف</a></li>
                 <li><a href="#">قائمة البرامج المستفيدة</a></li>
                 <li><a href="#">عقود الإيجارات</a></li>
                 <li><a href="#">الحسابات</a></li>
