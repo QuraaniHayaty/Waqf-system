@@ -134,7 +134,7 @@
                             <div style="display:flex; flex-direction:column; gap:4px;">
                                 <div style="display:flex; gap:5px; align-items:center;">
                                     <a href="#" onclick="viewFile('#', 'عقد_محل_1.pdf')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 عقد_محل_1.pdf</a>
-                                    <button onclick="printSpecificFile('#', 'عقد_محل_1.pdf')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                                    <button onclick="viewFile('#', 'عقد_محل_1.pdf')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="معاينة وطباعة">🖨️</button>
                                 </div>
                             </div>
                         </td>
@@ -277,22 +277,13 @@
             container.appendChild(row);
         }
 
+        /* فتح الملف في تبويب مستقل ليتيح للمتصفح عرضه وطباعته بامتياز وبشكل صحيح 100% */
         function viewFile(url, name) {
             if(url && url !== '#') {
                 let win = window.open();
                 win.document.write(`<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`);
             } else {
                 alert('هذا ملف تجريبي افتراضي. قم بإرفاق ملف حقيقي لفتح واستعراض المحتوى.');
-            }
-        }
-
-        function printSpecificFile(url, name) {
-            if(url && url !== '#') {
-                let win = window.open();
-                win.document.write(`<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`);
-                setTimeout(() => { win.print(); }, 500);
-            } else {
-                alert('هذا ملف تجريبي افتراضي. قم بإرفاق ملف حقيقي لطباعته.');
             }
         }
 
@@ -455,7 +446,7 @@
                         filesHtml += `
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 ${f.name}</a>
-                                <button onclick="printSpecificFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="معاينة وطباعة">🖨️</button>
                             </div>
                         `;
                     });
@@ -526,7 +517,7 @@
                         filesHtml += `
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 ${f.name}</a>
-                                <button onclick="printSpecificFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="معاينة وطباعة">🖨️</button>
                             </div>
                         `;
                     });
