@@ -42,9 +42,16 @@
         th { background-color: #f8f9fa; color: #2e5a36; font-weight: 600; }
         tr:hover { background-color: #fcfcfc; }
         
+        /* تنسيق قائمة الإجراءات المنسدلة */
         .action-dropdown { position: relative; display: inline-block; }
-        .action-btn { background: #eef2f5; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .action-btn { background: #eef2f5; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px; color: #333; }
         .action-btn:hover { background: #dfe4ea; }
+        
+        .dropdown-menu { display: none; position: absolute; left: 0; top: 100%; background-color: white; min-width: 160px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 6px; z-index: 100; border: 1px solid #eee; overflow: hidden; }
+        .dropdown-menu a { color: #333; padding: 10px 15px; text-decoration: none; display: block; font-size: 13px; text-align: right; transition: background 0.2s; }
+        .dropdown-menu a:hover { background-color: #f1f8f4; color: #27ae60; }
+        .dropdown-menu a.delete-item { color: #c0392b; }
+        .dropdown-menu a.delete-item:hover { background-color: #fde8e8; }
         
         .pagination { display: flex; justify-content: flex-end; align-items: center; margin-top: 20px; gap: 5px; font-size: 14px; color: #666; }
         .pagination button { padding: 5px 10px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; }
@@ -107,21 +114,51 @@
                         <td>عمارة الروضة التجارية</td>
                         <td>قرية الروضة - الشارع العام</td>
                         <td>12 وحدة</td>
-                        <td><button class="action-btn">⋮</button></td>
+                        <td>
+                            <div class="action-dropdown">
+                                <button class="action-btn" onclick="toggleMenu(event, 'menu-1')">⋮</button>
+                                <div id="menu-1" class="dropdown-menu">
+                                    <a href="#">تعديل</a>
+                                    <a href="#">تفاصيل الوقف</a>
+                                    <a href="#">عقود الإيجار</a>
+                                    <a href="#" class="delete-item">حذف</a>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <td>2</td>
                         <td>مجمع النور السكني</td>
                         <td>حي المدارس</td>
                         <td>8 وحدات</td>
-                        <td><button class="action-btn">⋮</button></td>
+                        <td>
+                            <div class="action-dropdown">
+                                <button class="action-btn" onclick="toggleMenu(event, 'menu-2')">⋮</button>
+                                <div id="menu-2" class="dropdown-menu">
+                                    <a href="#">تعديل</a>
+                                    <a href="#">تفاصيل الوقف</a>
+                                    <a href="#">عقود الإيجار</a>
+                                    <a href="#" class="delete-item">حذف</a>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <td>3</td>
                         <td>أرض مزرعة البركة</td>
                         <td>المنطقة الزراعية</td>
                         <td>1 وحدة</td>
-                        <td><button class="action-btn">⋮</button></td>
+                        <td>
+                            <div class="action-dropdown">
+                                <button class="action-btn" onclick="toggleMenu(event, 'menu-3')">⋮</button>
+                                <div id="menu-3" class="dropdown-menu">
+                                    <a href="#">تعديل</a>
+                                    <a href="#">تفاصيل الوقف</a>
+                                    <a href="#">عقود الإيجار</a>
+                                    <a href="#" class="delete-item">حذف</a>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -133,5 +170,25 @@
             </div>
         </div>
     </main>
+
+    <script>
+        // دالة لفتح وإغلاق القائمة عند النقر على النقاط الثلاث
+        function toggleMenu(event, menuId) {
+            event.stopPropagation();
+            // إغلاق أي قوائم مفتوحة أخرى
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu.id !== menuId) menu.style.display = 'none';
+            });
+            let menu = document.getElementById(menuId);
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // إغلاق القوائم عند النقر في أي مكان خارجها
+        window.onclick = function() {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }
+    </script>
 </body>
 </html>
