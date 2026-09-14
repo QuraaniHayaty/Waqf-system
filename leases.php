@@ -50,6 +50,10 @@
         .btn-action-delete { background: #fee2e2; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #dc2626; }
         .btn-action-restore { background: #dcfce7; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #166534; }
 
+        /* شارات التنبيه (الحالة) */
+        .badge-active { background-color: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin-top: 3px; }
+        .badge-expired { background-color: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin-top: 3px; }
+
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: white; width: 680px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
@@ -108,7 +112,7 @@
         <div class="top-banner">
             <div class="banner-title">
                 <h1>عقود الإيجارات</h1>
-                <p>إدارة وإبرام عقود الإيجار وتحديد تواريخ وبداية ونهاية المدة بمرونة</p>
+                <p>متابعة حالة العقود وتنبيهات الصلاحية (ساري / منتهي)</p>
             </div>
         </div>
 
@@ -128,7 +132,7 @@
                         <th>اسم العقار</th>
                         <th>الطابق والوحدة</th>
                         <th>المستأجر ورقم الهاتف</th>
-                        <th>مدة العقد وتاريخه</th>
+                        <th>مدة العقد وحالته</th>
                         <th>القيمة الإيجارية</th>
                         <th>المرفقات</th>
                         <th>الإجراءات</th>
@@ -140,7 +144,7 @@
                         <td class="col-prop">عمارة الروضة التجارية</td>
                         <td class="col-unit">الطابق الأرضي (محل رقم 1)</td>
                         <td class="col-tenant">شركة الأفق للتجارة<br><small style="color:#777;">📞 95000000</small></td>
-                        <td class="col-duration"><b>سنتان</b><br><small style="color:#666;">من: 2026-01-01<br>إلى: 2028-01-01</small></td>
+                        <td class="col-duration"></td>
                         <td class="col-amount">50 ر.ع</td>
                         <td class="col-files">
                             <div style="display:flex; flex-direction:column; gap:4px;">
@@ -341,13 +345,17 @@
         let archiveData = [];
         let archiveCurrentPage = 1;
         const archiveRowsPerPage = 10;
+        
+        // تاريخ اليوم الحالي للمقارنة التلقائية (15 سبتمبر 2026)
+        const currentDate = new Date('2026-09-15');
 
-        /* دالة حساب المدة الزمنية تلقائياً بين تاريخين */
-        function calculateDurationText(startDateStr, endDateStr) {
-            if(!startDateStr || !endDateStr) return 'غير محدد';
+        function calculateDurationAndStatus(startDateStr, endDateStr) {
+            if(!startDateStr || !endDateStr) return { text: 'غير محدد', statusHtml: '' };
             let start = new Date(startDateStr);
             let end = new Date(endDateStr);
-            if(end <= start) return 'تاريخ غير منطقي';
+            
+            let isExpired = end < currentDate;
+            let statusBadge = isExpired ? '<span class="badge-expired">🔴 منتهي</span>' : '<span class="badge-active">🟢 ساري / فعال</span>';
 
             let diffTime = Math.abs(end - start);
             let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -361,7 +369,25 @@
             if(months > 0) textParts.push(months + ' شهر');
             if(years === 0 && months === 0 && days > 0) textParts.push(days + ' يوم');
 
-            return textParts.join(' و ') || 'يوم واحد';
+            return {
+                text: textParts.join(' و ') || 'يوم واحد',
+                statusHtml: statusBadge
+            };
+        }
+
+        /* تحديث الصف الافتراضي عند التحميل */
+        window.onload = function() {
+            refreshTableDurations();
+        };
+
+        function refreshTableDurations() {
+            let row = document.getElementById('lease-row-1');
+            if(row) {
+                let start = row.getAttribute('data-start');
+                let end = row.getAttribute('data-end');
+                let res = calculateDurationAndStatus(start, end);
+                row.querySelector('.col-duration').innerHTML = `<b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small>`;
+            }
         }
 
         function addAttachmentRow(containerId, fileObj = null) {
@@ -440,7 +466,7 @@
                 }
                 filesHtml += '</div>';
 
-                let durationText = calculateDurationText(item.start, item.end);
+                let res = calculateDurationAndStatus(item.start, item.end);
 
                 let newRow = document.createElement('tr');
                 newRow.id = 'lease-row-' + rowCount;
@@ -459,7 +485,7 @@
                     <td class="col-prop">${item.prop}</td>
                     <td class="col-unit">${item.floor} (${item.unit})</td>
                     <td class="col-tenant">${item.tenant}<br><small style="color:#777;">📞 ${item.phone || '-'}</small></td>
-                    <td class="col-duration"><b>${durationText}</b><br><small style="color:#666;">من: ${item.start}<br>إلى: ${item.end}</small></td>
+                    <td class="col-duration"><b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${item.start}<br>إلى: ${item.end}</small></td>
                     <td class="col-amount">${item.amount} ر.ع</td>
                     <td class="col-files">${filesHtml}</td>
                     <td>
@@ -522,13 +548,13 @@
                 });
                 if(!filesHtml) filesHtml = 'لا توجد مرفقات';
 
-                let durationText = calculateDurationText(item.start, item.end);
+                let res = calculateDurationAndStatus(item.start, item.end);
 
                 html += `<tr>
                     <td>${item.prop}</td>
                     <td>${item.floor} (${item.unit})</td>
                     <td>${item.tenant}<br><small style="color:#777;">📞 ${item.phone || '-'}</small></td>
-                    <td><b>${durationText}</b><br><small style="color:#666;">من: ${item.start}<br>إلى: ${item.end}</small></td>
+                    <td><b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${item.start}<br>إلى: ${item.end}</small></td>
                     <td>${item.amount} ر.ع</td>
                     <td>${filesHtml}</td>
                     <td>
@@ -707,7 +733,7 @@
             });
 
             function finishSave(filesArr) {
-                let durationText = calculateDurationText(start, end);
+                let res = calculateDurationAndStatus(start, end);
 
                 row.setAttribute('data-prop', prop);
                 row.setAttribute('data-floor', floor);
@@ -722,7 +748,7 @@
                 row.querySelector('.col-prop').innerText = prop;
                 row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
                 row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
-                row.querySelector('.col-duration').innerHTML = `<b>${durationText}</b><br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small>`;
+                row.querySelector('.col-duration').innerHTML = `<b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small>`;
                 row.querySelector('.col-amount').innerText = `${amount} ر.ع`;
                 
                 let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
@@ -742,7 +768,7 @@
                 row.querySelector('.col-files').innerHTML = filesHtml;
 
                 closeEditLeaseModal();
-                alert('تم تحديث العقد وتواريخ المدة بنجاح!');
+                alert('تم تحديث العقد وحالته بنجاح!');
             }
         }
 
@@ -787,7 +813,7 @@
             function finishAdd(filesArr) {
                 let tbody = document.getElementById('leasesTableBody');
                 let rowCount = tbody.rows.length + 1;
-                let durationText = calculateDurationText(start, end);
+                let res = calculateDurationAndStatus(start, end);
 
                 let newRow = document.createElement('tr');
                 newRow.id = 'lease-row-' + rowCount;
@@ -821,7 +847,7 @@
                     <td class="col-prop">${prop}</td>
                     <td class="col-unit">${floor} (${unit})</td>
                     <td class="col-tenant">${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
-                    <td class="col-duration"><b>${durationText}</b><br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small></td>
+                    <td class="col-duration"><b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small></td>
                     <td class="col-amount">${amount} ر.ع</td>
                     <td class="col-files">${filesHtml}</td>
                     <td>
@@ -835,7 +861,7 @@
 
                 tbody.appendChild(newRow);
                 closeAddLeaseModal();
-                alert('تمت إضافة عقد الإيجار وتحديد مدته بنجاح!');
+                alert('تمت إضافة عقد الإيجار وحالته بنجاح!');
             }
         }
     </script>
