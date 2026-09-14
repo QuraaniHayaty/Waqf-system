@@ -117,12 +117,12 @@
                     </tr>
                 </thead>
                 <tbody id="leasesTableBody">
-                    <tr>
+                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50">
                         <td>1</td>
-                        <td>عمارة الروضة التجارية</td>
-                        <td>الطابق الأرضي (محل رقم 1)</td>
-                        <td>شركة الأفق للتجارة<br><small style="color:#777;">📞 95000000</small></td>
-                        <td>50 ر.ع</td>
+                        <td class="col-prop">عمارة الروضة التجارية</td>
+                        <td class="col-unit">الطابق الأرضي (محل رقم 1)</td>
+                        <td class="col-tenant">شركة الأفق للتجارة<br><small style="color:#777;">📞 95000000</small></td>
+                        <td class="col-amount">50 ر.ع</td>
                         <td>
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد_محل_1.pdf</a>
@@ -130,7 +130,7 @@
                                 <button onclick="this.closest('tr').remove()" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="حذف العقد">🗑️</button>
                             </div>
                         </td>
-                        <td><button style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">تعديل</button></td>
+                        <td><button onclick="openEditLeaseModal(1)" style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">تعديل</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -153,14 +153,14 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>اختر العقار</label>
-                    <select id="leasePropSelect" onchange="loadFloatsForProperty()">
+                    <select id="leasePropSelect" onchange="loadFloatsForProperty('leasePropSelect', 'leaseFloorSelect', 'leaseUnitSelect')">
                         <option value="" disabled selected>اختر العقار</option>
                         <option value="عمارة الروضة التجارية">عمارة الروضة التجارية</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>اختر الطابق</label>
-                    <select id="leaseFloorSelect" onchange="loadUnitsForFloor()">
+                    <select id="leaseFloorSelect" onchange="loadUnitsForFloor('leasePropSelect', 'leaseFloorSelect', 'leaseUnitSelect')">
                         <option value="" disabled selected>اختر الطابق أولاً</option>
                     </select>
                 </div>
@@ -176,7 +176,7 @@
                 </div>
                 <div class="form-group">
                     <label>رقم هاتف المستأجر</label>
-                    <input type="text" id="leasePhone" placeholder="أدخل رقم الهاتف (مثال: 95000000)">
+                    <input type="text" id="leasePhone" placeholder="أدخل رقم الهاتف">
                 </div>
                 <div class="form-group">
                     <label>القيمة الإيجارية الشهرية (ر.ع)</label>
@@ -189,6 +189,50 @@
             </div>
             <div class="modal-footer">
                 <button class="btn-save" onclick="saveNewLease()">حفظ العقد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تعديل عقد إيجار -->
+    <div id="editLeaseModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تعديل عقد الإيجار</h3>
+                <button class="close-modal" onclick="closeEditLeaseModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editLeaseId">
+                <div class="form-group">
+                    <label>اختر العقار</label>
+                    <select id="editLeasePropSelect" onchange="loadFloatsForProperty('editLeasePropSelect', 'editLeaseFloorSelect', 'editLeaseUnitSelect')">
+                        <option value="عمارة الروضة التجارية">عمارة الروضة التجارية</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اختر الطابق</label>
+                    <select id="editLeaseFloorSelect" onchange="loadUnitsForFloor('editLeasePropSelect', 'editLeaseFloorSelect', 'editLeaseUnitSelect')">
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اختر الوحدة</label>
+                    <select id="editLeaseUnitSelect">
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اسم المستأجر</label>
+                    <input type="text" id="editLeaseTenant">
+                </div>
+                <div class="form-group">
+                    <label>رقم هاتف المستأجر</label>
+                    <input type="text" id="editLeasePhone">
+                </div>
+                <div class="form-group">
+                    <label>القيمة الإيجارية الشهرية (ر.ع)</label>
+                    <input type="number" id="editLeaseAmount">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-save" onclick="saveEditLeaseChanges()">حفظ التغييرات</button>
             </div>
         </div>
     </div>
@@ -216,12 +260,12 @@
             document.getElementById('addLeaseModal').style.display = 'none';
         }
 
-        function loadFloatsForProperty() {
-            let prop = document.getElementById('leasePropSelect').value;
-            let floorSelect = document.getElementById('leaseFloorSelect');
+        function loadFloatsForProperty(propId, floorId, unitId) {
+            let prop = document.getElementById(propId).value;
+            let floorSelect = document.getElementById(floorId);
             floorSelect.innerHTML = '<option value="" disabled selected>اختر الطابق</option>';
             
-            let unitSelect = document.getElementById('leaseUnitSelect');
+            let unitSelect = document.getElementById(unitId);
             unitSelect.innerHTML = '<option value="" disabled selected>اختر الطابق أولاً</option>';
 
             if(samplePropertyData[prop]) {
@@ -234,10 +278,10 @@
             }
         }
 
-        function loadUnitsForFloor() {
-            let prop = document.getElementById('leasePropSelect').value;
-            let floor = document.getElementById('leaseFloorSelect').value;
-            let unitSelect = document.getElementById('leaseUnitSelect');
+        function loadUnitsForFloor(propId, floorId, unitId) {
+            let prop = document.getElementById(propId).value;
+            let floor = document.getElementById(floorId).value;
+            let unitSelect = document.getElementById(unitId);
             unitSelect.innerHTML = '<option value="" disabled selected>اختر الوحدة</option>';
 
             if(samplePropertyData[prop]) {
@@ -253,6 +297,62 @@
             }
         }
 
+        function openEditLeaseModal(id) {
+            let row = document.getElementById('lease-row-' + id);
+            let prop = row.getAttribute('data-prop');
+            let floor = row.getAttribute('data-floor');
+            let unit = row.getAttribute('data-unit');
+            let tenant = row.getAttribute('data-tenant');
+            let phone = row.getAttribute('data-phone');
+            let amount = row.getAttribute('data-amount');
+
+            document.getElementById('editLeaseId').value = id;
+            document.getElementById('editLeasePropSelect').value = prop;
+            
+            loadFloatsForProperty('editLeasePropSelect', 'editLeaseFloorSelect', 'editLeaseUnitSelect');
+            document.getElementById('editLeaseFloorSelect').value = floor;
+            
+            loadUnitsForFloor('editLeasePropSelect', 'editLeaseFloorSelect', 'editLeaseUnitSelect');
+            document.getElementById('editLeaseUnitSelect').value = unit;
+
+            document.getElementById('editLeaseTenant').value = tenant;
+            document.getElementById('editLeasePhone').value = phone;
+            document.getElementById('editLeaseAmount').value = amount;
+
+            document.getElementById('editLeaseModal').style.display = 'flex';
+        }
+
+        function closeEditLeaseModal() {
+            document.getElementById('editLeaseModal').style.display = 'none';
+        }
+
+        function saveEditLeaseChanges() {
+            let id = document.getElementById('editLeaseId').value;
+            let row = document.getElementById('lease-row-' + id);
+
+            let prop = document.getElementById('editLeasePropSelect').value;
+            let floor = document.getElementById('editLeaseFloorSelect').value;
+            let unit = document.getElementById('editLeaseUnitSelect').value;
+            let tenant = document.getElementById('editLeaseTenant').value;
+            let phone = document.getElementById('editLeasePhone').value;
+            let amount = document.getElementById('editLeaseAmount').value;
+
+            row.setAttribute('data-prop', prop);
+            row.setAttribute('data-floor', floor);
+            row.setAttribute('data-unit', unit);
+            row.setAttribute('data-tenant', tenant);
+            row.setAttribute('data-phone', phone);
+            row.setAttribute('data-amount', amount);
+
+            row.querySelector('.col-prop').innerText = prop;
+            row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
+            row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
+            row.querySelector('.col-amount').innerText = `${amount} ر.ع`;
+
+            closeEditLeaseModal();
+            alert('تم تحديث العقد بنجاح!');
+        }
+
         function saveNewLease() {
             let prop = document.getElementById('leasePropSelect').value;
             let floor = document.getElementById('leaseFloorSelect').value;
@@ -263,7 +363,7 @@
             let fileInput = document.getElementById('leaseFile');
 
             if(!prop || !floor || !unit || !tenant || !amount) {
-                alert('الرجاء تعبئة الحقول الأساسية (العقار، الطابق، الوحدة، اسم المستأجر، والقيمة)');
+                alert('الرجاء تعبئة الحقول الأساسية');
                 return;
             }
 
@@ -272,12 +372,20 @@
             let rowCount = tbody.rows.length + 1;
 
             let newRow = document.createElement('tr');
+            newRow.id = 'lease-row-' + rowCount;
+            newRow.setAttribute('data-prop', prop);
+            newRow.setAttribute('data-floor', floor);
+            newRow.setAttribute('data-unit', unit);
+            newRow.setAttribute('data-tenant', tenant);
+            newRow.setAttribute('data-phone', phone);
+            newRow.setAttribute('data-amount', amount);
+
             newRow.innerHTML = `
                 <td>${rowCount}</td>
-                <td>${prop}</td>
-                <td>${floor} (${unit})</td>
-                <td>${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
-                <td>${amount} ر.ع</td>
+                <td class="col-prop">${prop}</td>
+                <td class="col-unit">${floor} (${unit})</td>
+                <td class="col-tenant">${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
+                <td class="col-amount">${amount} ر.ع</td>
                 <td>
                     <div style="display:flex; gap:5px; align-items:center;">
                         <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 ${fileName}</a>
@@ -285,7 +393,7 @@
                         <button onclick="this.closest('tr').remove()" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="حذف العقد">🗑️</button>
                     </div>
                 </td>
-                <td><button style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">تعديل</button></td>
+                <td><button onclick="openEditLeaseModal(${rowCount})" style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">تعديل</button></td>
             `;
 
             tbody.appendChild(newRow);
