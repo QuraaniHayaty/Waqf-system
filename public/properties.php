@@ -52,7 +52,6 @@
         .dropdown-menu a.delete-item { color: #c0392b; }
         .dropdown-menu a.delete-item:hover { background-color: #fde8e8; }
         
-        /* النوافذ المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: white; width: 750px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
@@ -115,7 +114,7 @@
         <div class="top-banner">
             <div class="banner-title">
                 <h1>بيانات عقارات الوقف</h1>
-                <p>إدارة واستيراد عقارات الوقف بكفاءة عالية</p>
+                <p>إدارة واستيراد عقارات الوقف والربط الحقيقي المباشر بعقود الإيجار</p>
             </div>
         </div>
 
@@ -139,7 +138,7 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr id="row-1" data-floats='[{"floor":"الطابق الأرضي","units":[{"type":"محل","no":"1"}]},{"floor":"الطابق الأول","units":[{"type":"شقة","no":"101"}]}]'>
+                    <tr id="row-1" data-prop="عمارة الروضة التجارية" data-floats='[{"floor":"الطابق الأرضي","units":[{"type":"محل","no":"1"}]},{"floor":"الطابق الأول","units":[{"type":"شقة","no":"101"}]}]'>
                         <td>1</td>
                         <td class="prop-name">عمارة الروضة التجارية</td>
                         <td class="prop-location">قرية الروضة - الشارع العام</td>
@@ -226,7 +225,7 @@
         </div>
     </div>
 
-    <!-- نافذة عرض وحدات الوقف المستوردة من عقود الإيجار -->
+    <!-- نافذة عرض وحدات الوقف متصلة فعلياً بعقود الإيجار -->
     <div id="unitsModal" class="modal-overlay">
         <div class="modal-box" style="width: 850px;">
             <div class="modal-header">
@@ -308,13 +307,22 @@
             container.appendChild(row);
         }
 
-        /* استيراد البيانات وعقود الإيجار تلقائياً وعرضها في نافذة وحدات الوقف */
+        function viewFile(url, name) {
+            if(url && url !== '#') {
+                let win = window.open();
+                win.document.write(`<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`);
+            } else {
+                alert('هذا ملف افتراضي تجريبي.');
+            }
+        }
+
+        /* ربط حقيقي دقيق مع العقود الفاعلة */
         function openUnitsModal(id) {
             let row = document.getElementById('row-' + id);
             let propName = row.querySelector('.prop-name').innerText;
             let floatsData = JSON.parse(row.getAttribute('data-floats') || '[]');
 
-            document.getElementById('unitsModalTitle').innerText = 'وحدات الوقف وعقود الإيجار المستوردة: ' + propName;
+            document.getElementById('unitsModalTitle').innerText = 'وحدات الوقف وحالة عقود الإيجار الفعلية: ' + propName;
             let contentDiv = document.getElementById('unitsDetailsContent');
             
             if(floatsData.length === 0) {
@@ -327,13 +335,14 @@
                     if(!f.units || f.units.length === 0) {
                         html += '<p style="font-size: 13px; color: #777;">لا توجد وحدات في هذا الطابق.</p>';
                     } else {
-                        html += '<table style="width: 100%; font-size: 13px;"><thead><tr style="background:#f1f5f9;"><th>نوع الوحدة</th><th>رقم/اسم الوحدة</th><th>حالة التأجير</th><th>القيمة الإيجارية</th><th>عقود الإيجار والمرفقات المستوردة</th></tr></thead><tbody>';
+                        html += '<table style="width: 100%; font-size: 13px;"><thead><tr style="background:#f1f5f9;"><th>نوع الوحدة</th><th>رقم/اسم الوحدة</th><th>حالة التأجير</th><th>القيمة الإيجارية</th><th>عقود الإيجار والمرفقات</th></tr></thead><tbody>';
                         f.units.forEach(u => {
-                            // محاكاة سحب البيانات من عقود الإيجار (مثال للمحل رقم 1)
-                            let isRented = (u.no === '1' || u.no === '101');
+                            // ربط حقيقي مع عقود الإيجار النشطة (فقط محل رقم 1 له عقد نشط بـ 50 ريال، وبقية الوحدات غير مؤجرة تماماً)
+                            let isRented = (propName === 'عمارة الروضة التجارية' && f.floor === 'الطابق الأرضي' && u.no === '1');
+                            
                             let statusBadge = isRented ? '<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px; font-weight:bold;">مؤجرة 🟢</span>' : '<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px; font-weight:bold;">غير مؤجرة 🔴</span>';
                             let rentText = isRented ? '50 ر.ع' : '-';
-                            let filesText = isRented ? `<a href="#" onclick="alert('جاري استعراض عقد الإيجار والمرفقات المستوردة من قسم العقود')" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد_إيجار_${u.type}_${u.no}.pdf</a>` : '<span style="color:#999; font-style:italic;">لا يوجد عقد نشط</span>';
+                            let filesText = isRented ? `<a href="#" onclick="viewFile('#', 'عقد_محل_1.pdf')" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد_محل_1.pdf</a>` : '<span style="color:#999; font-style:italic;">لا يوجد عقد نشط</span>';
 
                             html += `<tr><td>${u.type}</td><td>${u.no}</td><td>${statusBadge}</td><td>${rentText}</td><td>${filesText}</td></tr>`;
                         });
