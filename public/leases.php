@@ -124,7 +124,7 @@
                     </tr>
                 </thead>
                 <tbody id="leasesTableBody">
-                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50" data-files='["عقد_محل_1.pdf"]'>
+                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50" data-files='[{"name": "عقد_محل_1.pdf", "url": "#"}]'>
                         <td>1</td>
                         <td class="col-prop">عمارة الروضة التجارية</td>
                         <td class="col-unit">الطابق الأرضي (محل رقم 1)</td>
@@ -133,8 +133,8 @@
                         <td class="col-files">
                             <div style="display:flex; flex-direction:column; gap:4px;">
                                 <div style="display:flex; gap:5px; align-items:center;">
-                                    <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px;">📄 عقد_محل_1.pdf</a>
-                                    <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                                    <a href="#" onclick="viewFile('#', 'عقد_محل_1.pdf')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 عقد_محل_1.pdf</a>
+                                    <button onclick="printSpecificFile('#', 'عقد_محل_1.pdf')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
                                 </div>
                             </div>
                         </td>
@@ -261,16 +261,39 @@
             ]
         };
 
-        function addAttachmentRow(containerId, fileName = '') {
+        function addAttachmentRow(containerId, fileObj = null) {
             let container = document.getElementById(containerId);
             let row = document.createElement('div');
             row.className = 'attachment-row';
+            
+            let fileName = fileObj ? fileObj.name : '';
+            let fileUrl = fileObj ? fileObj.url : '';
+
             row.innerHTML = `
-                <input type="file" class="att-file" style="flex:1;" data-existing="${fileName}">
-                ${fileName ? '<span style="font-size:12px; color:#27ae60;">(مرفق حالي: ' + fileName + ')</span>' : ''}
+                <input type="file" class="att-file" style="flex:1;" data-url="${fileUrl}" data-name="${fileName}">
+                ${fileName ? `<span style="font-size:12px; color:#27ae60; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${fileName}">(${fileName})</span>` : ''}
                 <button type="button" class="btn-remove-att" onclick="this.parentElement.remove()">حذف</button>
             `;
             container.appendChild(row);
+        }
+
+        function viewFile(url, name) {
+            if(url && url !== '#') {
+                let win = window.open();
+                win.document.write(`<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`);
+            } else {
+                alert('هذا ملف تجريبي افتراضي. قم بإرفاق ملف حقيقي لفتح واستعراض المحتوى.');
+            }
+        }
+
+        function printSpecificFile(url, name) {
+            if(url && url !== '#') {
+                let win = window.open();
+                win.document.write(`<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`);
+                setTimeout(() => { win.print(); }, 500);
+            } else {
+                alert('هذا ملف تجريبي افتراضي. قم بإرفاق ملف حقيقي لطباعته.');
+            }
         }
 
         function openAddLeaseModal() {
@@ -380,48 +403,69 @@
             let phone = document.getElementById('editLeasePhone').value;
             let amount = document.getElementById('editLeaseAmount').value;
 
-            let fileNames = [];
-            document.querySelectorAll('#edit-attachments-container .attachment-row').forEach((ar, idx) => {
+            let fileObjects = [];
+            let rows = document.querySelectorAll('#edit-attachments-container .attachment-row');
+            
+            let processed = 0;
+            if(rows.length === 0) finishSave([]);
+
+            rows.forEach((ar, idx) => {
                 let fi = ar.querySelector('.att-file');
-                let existing = fi.getAttribute('data-existing');
+                let existingUrl = fi.getAttribute('data-url');
+                let existingName = fi.getAttribute('data-name');
+
                 if(fi.files.length > 0) {
-                    fileNames.push(fi.files[0].name);
-                } else if(existing) {
-                    fileNames.push(existing);
+                    let file = fi.files[0];
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        fileObjects.push({ name: file.name, url: e.target.result });
+                        processed++;
+                        if(processed === rows.length) finishSave(fileObjects);
+                    };
+                    reader.readAsDataURL(file);
+                } else if(existingName) {
+                    fileObjects.push({ name: existingName, url: existingUrl || '#' });
+                    processed++;
+                    if(processed === rows.length) finishSave(fileObjects);
+                } else {
+                    processed++;
+                    if(processed === rows.length) finishSave(fileObjects);
                 }
             });
 
-            row.setAttribute('data-prop', prop);
-            row.setAttribute('data-floor', floor);
-            row.setAttribute('data-unit', unit);
-            row.setAttribute('data-tenant', tenant);
-            row.setAttribute('data-phone', phone);
-            row.setAttribute('data-amount', amount);
-            row.setAttribute('data-files', JSON.stringify(fileNames));
+            function finishSave(filesArr) {
+                row.setAttribute('data-prop', prop);
+                row.setAttribute('data-floor', floor);
+                row.setAttribute('data-unit', unit);
+                row.setAttribute('data-tenant', tenant);
+                row.setAttribute('data-phone', phone);
+                row.setAttribute('data-amount', amount);
+                row.setAttribute('data-files', JSON.stringify(filesArr));
 
-            row.querySelector('.col-prop').innerText = prop;
-            row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
-            row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
-            row.querySelector('.col-amount').innerText = `${amount} ر.ع`;
-            
-            let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
-            if(fileNames.length === 0) {
-                filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
-            } else {
-                fileNames.forEach(fn => {
-                    filesHtml += `
-                        <div style="display:flex; gap:5px; align-items:center;">
-                            <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px;">📄 ${fn}</a>
-                            <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
-                        </div>
-                    `;
-                });
+                row.querySelector('.col-prop').innerText = prop;
+                row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
+                row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
+                row.querySelector('.col-amount').innerText = `${amount} ر.ع`;
+                
+                let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
+                if(filesArr.length === 0) {
+                    filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
+                } else {
+                    filesArr.forEach(f => {
+                        filesHtml += `
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 ${f.name}</a>
+                                <button onclick="printSpecificFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                            </div>
+                        `;
+                    });
+                }
+                filesHtml += '</div>';
+                row.querySelector('.col-files').innerHTML = filesHtml;
+
+                closeEditLeaseModal();
+                alert('تم تحديث العقد والمرفقات بنجاح!');
             }
-            filesHtml += '</div>';
-            row.querySelector('.col-files').innerHTML = filesHtml;
-
-            closeEditLeaseModal();
-            alert('تم تحديث العقد والمرفقات بنجاح!');
         }
 
         function saveNewLease() {
@@ -437,55 +481,72 @@
                 return;
             }
 
-            let fileNames = [];
-            document.querySelectorAll('#add-attachments-container .attachment-row').forEach((ar, idx) => {
+            let fileObjects = [];
+            let rows = document.querySelectorAll('#add-attachments-container .attachment-row');
+            
+            let processed = 0;
+            if(rows.length === 0) finishAdd([]);
+
+            rows.forEach((ar, idx) => {
                 let fi = ar.querySelector('.att-file');
                 if(fi.files.length > 0) {
-                    fileNames.push(fi.files[0].name);
+                    let file = fi.files[0];
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        fileObjects.push({ name: file.name, url: e.target.result });
+                        processed++;
+                        if(processed === rows.length) finishAdd(fileObjects);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    processed++;
+                    if(processed === rows.length) finishAdd(fileObjects);
                 }
             });
 
-            let tbody = document.getElementById('leasesTableBody');
-            let rowCount = tbody.rows.length + 1;
+            function finishAdd(filesArr) {
+                let tbody = document.getElementById('leasesTableBody');
+                let rowCount = tbody.rows.length + 1;
 
-            let newRow = document.createElement('tr');
-            newRow.id = 'lease-row-' + rowCount;
-            newRow.setAttribute('data-prop', prop);
-            newRow.setAttribute('data-floor', floor);
-            newRow.setAttribute('data-unit', unit);
-            newRow.setAttribute('data-tenant', tenant);
-            newRow.setAttribute('data-phone', phone);
-            newRow.setAttribute('data-amount', amount);
-            newRow.setAttribute('data-files', JSON.stringify(fileNames));
+                let newRow = document.createElement('tr');
+                newRow.id = 'lease-row-' + rowCount;
+                newRow.setAttribute('data-prop', prop);
+                newRow.setAttribute('data-floor', floor);
+                newRow.setAttribute('data-unit', unit);
+                newRow.setAttribute('data-tenant', tenant);
+                newRow.setAttribute('data-phone', phone);
+                newRow.setAttribute('data-amount', amount);
+                newRow.setAttribute('data-files', JSON.stringify(filesArr));
 
-            let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
-            if(fileNames.length === 0) {
-                filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
-            } else {
-                fileNames.forEach(fn => {
-                    filesHtml += `
-                        <div style="display:flex; gap:5px; align-items:center;">
-                            <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px;">📄 ${fn}</a>
-                            <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
-                        </div>
-                    `;
-                });
+                let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
+                if(filesArr.length === 0) {
+                    filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
+                } else {
+                    filesArr.forEach(f => {
+                        filesHtml += `
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 ${f.name}</a>
+                                <button onclick="printSpecificFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                            </div>
+                        `;
+                    });
+                }
+                filesHtml += '</div>';
+
+                newRow.innerHTML = `
+                    <td>${rowCount}</td>
+                    <td class="col-prop">${prop}</td>
+                    <td class="col-unit">${floor} (${unit})</td>
+                    <td class="col-tenant">${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
+                    <td class="col-amount">${amount} ر.ع</td>
+                    <td class="col-files">${filesHtml}</td>
+                    <td><button onclick="openEditLeaseModal(${rowCount})" style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">تعديل</button></td>
+                `;
+
+                tbody.appendChild(newRow);
+                closeAddLeaseModal();
+                alert('تمت إضافة عقد الإيجار والمرفقات بنجاح!');
             }
-            filesHtml += '</div>';
-
-            newRow.innerHTML = `
-                <td>${rowCount}</td>
-                <td class="col-prop">${prop}</td>
-                <td class="col-unit">${floor} (${unit})</td>
-                <td class="col-tenant">${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
-                <td class="col-amount">${amount} ر.ع</td>
-                <td class="col-files">${filesHtml}</td>
-                <td><button onclick="openEditLeaseModal(${rowCount})" style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">تعديل</button></td>
-            `;
-
-            tbody.appendChild(newRow);
-            closeAddLeaseModal();
-            alert('تمت إضافة عقد الإيجار والمرفقات بنجاح!');
         }
     </script>
 </body>
