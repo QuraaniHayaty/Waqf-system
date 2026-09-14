@@ -54,7 +54,7 @@
         
         /* النوافذ المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: white; width: 650px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-box { background: white; width: 680px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
         .modal-header h3 { font-size: 16px; color: #333; font-weight: bold; }
         .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
@@ -64,7 +64,7 @@
         .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; text-align: right; font-weight: bold; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; background: #fff; }
         
-        /* تصميم هيكل الطوابق والوحدات */
+        /* الطوابق والوحدات */
         .floats-section-title { font-size: 15px; color: #2e5a36; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #27ae60; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
         .floor-card { background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
         .floor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -144,15 +144,17 @@
                         <th>اسم الوقف</th>
                         <th>مكان الوقف</th>
                         <th>عدد الوحدات</th>
+                        <th>إجمالي الدخل الحالي</th>
                         <th>الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr id="row-1" data-floats='[{"floor":"الطابق الأرضي","units":[{"type":"محل","no":"1"},{"type":"محل","no":"2"}]},{"floor":"الطابق الأول","units":[{"type":"شقة","no":"101"},{"type":"شقة","no":"102"}]}]'>
+                    <tr id="row-1" data-floats='[{"floor":"الطابق الأرضي","units":[{"type":"محل","no":"1","status":"مؤجرة","rent":"50"},{"type":"محل","no":"2","status":"غير مؤجرة","rent":"0"}]},{"floor":"الطابق الأول","units":[{"type":"شقة","no":"101","status":"مؤجرة","rent":"120"},{"type":"شقة","no":"102","status":"غير مؤجرة","rent":"0"}]}]'>
                         <td>1</td>
                         <td class="prop-name">عمارة الروضة التجارية</td>
                         <td class="prop-location">قرية الروضة - الشارع العام</td>
                         <td class="prop-units">4 وحدة</td>
+                        <td class="prop-income" style="font-weight: bold; color: #27ae60;">170 ر.ع</td>
                         <td>
                             <div class="action-dropdown">
                                 <button class="action-btn" onclick="toggleMenu(event, 'menu-1')">⋮</button>
@@ -235,7 +237,7 @@
         </div>
     </div>
 
-    <!-- نافذة عرض وحدات الوقف مرزبة بالطوابق وحالة التأجير -->
+    <!-- نافذة عرض وحدات الوقف -->
     <div id="unitsModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -279,7 +281,6 @@
             });
         }
 
-        /* إضافة طابق جديد */
         function addFloorRow(containerId, floorName = '', units = []) {
             let container = document.getElementById(containerId);
             let floorDiv = document.createElement('div');
@@ -299,20 +300,19 @@
             let unitsContainer = floorDiv.querySelector('.units-in-floor');
             if(units && units.length > 0) {
                 units.forEach(u => {
-                    addUnitRowObj(unitsContainer, u.type, u.no);
+                    addUnitRowObj(unitsContainer, u.type, u.no, u.status, u.rent);
                 });
             } else {
-                addUnitRowObj(unitsContainer, '', '');
+                addUnitRowObj(unitsContainer, '', '', 'غير مؤجرة', '0');
             }
         }
 
-        /* إضافة وحدة داخل الطابق */
-        function addUnitInFloor(floorId, type = '', no = '') {
+        function addUnitInFloor(floorId, type = '', no = '', status = 'غير مؤجرة', rent = '0') {
             let container = document.getElementById(floorId);
-            addUnitRowObj(container, type, no);
+            addUnitRowObj(container, type, no, status, rent);
         }
 
-        function addUnitRowObj(container, type, no) {
+        function addUnitRowObj(container, type, no, status, rent) {
             let row = document.createElement('div');
             row.className = 'unit-row';
             row.innerHTML = `
@@ -323,13 +323,30 @@
                     <option value="مخزن" ${type==='مخزن'?'selected':''}>مخزن</option>
                     <option value="منزل" ${type==='منزل'?'selected':''}>منزل</option>
                 </select>
-                <input type="text" class="unit-no" placeholder="رقم أو اسم الوحدة (مثال: 101)" value="${no}">
+                <input type="text" class="unit-no" placeholder="رقم/اسم الوحدة" value="${no}" style="flex:0.8;">
+                <select class="unit-status" onchange="toggleRentInput(this)">
+                    <option value="غير مؤجرة" ${status==='غير مؤجرة'?'selected':''}>غير مؤجرة</option>
+                    <option value="مؤجرة" ${status==='مؤجرة'?'selected':''}>مؤجرة</option>
+                </select>
+                <input type="number" class="unit-rent" placeholder="القيمة الإيجارية" value="${rent}" ${status==='غير مؤجرة'?'disabled style="background:#eee;"':''} style="flex:0.8;">
                 <button type="button" class="btn-remove" onclick="this.parentElement.remove()">حذف</button>
             `;
             container.appendChild(row);
         }
 
-        /* فتح نافذة عرض وحدات العقار بالطوابق وحالة التأجير */
+        function toggleRentInput(selectElem) {
+            let rentInput = selectElem.parentElement.querySelector('.unit-rent');
+            if(selectElem.value === 'مؤجرة') {
+                rentInput.disabled = false;
+                rentInput.style.background = '#fff';
+                if(rentInput.value == '0') rentInput.value = '';
+            } else {
+                rentInput.disabled = true;
+                rentInput.style.background = '#eee';
+                rentInput.value = '0';
+            }
+        }
+
         function openUnitsModal(id) {
             let row = document.getElementById('row-' + id);
             let propName = row.querySelector('.prop-name').innerText;
@@ -350,8 +367,9 @@
                     } else {
                         html += '<table style="width: 100%; font-size: 13px;"><thead><tr style="background:#f1f5f9;"><th>نوع الوحدة</th><th>رقم/اسم الوحدة</th><th>حالة التأجير</th><th>القيمة الإيجارية</th></tr></thead><tbody>';
                         f.units.forEach(u => {
-                            // مبدئياً الحالة غير مؤجرة (تأتي لاحقاً من عقود الإيجار)
-                            html += `<tr><td>${u.type}</td><td>${u.no}</td><td><span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px; font-size:12px;">غير مؤجرة</span></td><td>-</td></tr>`;
+                            let badgeStyle = u.status === 'مؤجرة' ? 'background:#dcfce7; color:#166534;' : 'background:#fee2e2; color:#991b1b;';
+                            let rentText = u.status === 'مؤجرة' ? (u.rent + ' ر.ع') : '-';
+                            html += `<tr><td>${u.type}</td><td>${u.no}</td><td><span style="${badgeStyle} padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold;">${u.status}</span></td><td>${rentText}</td></tr>`;
                         });
                         html += '</tbody></table>';
                     }
@@ -399,6 +417,7 @@
 
             let floatsArr = [];
             let totalUnitsCount = 0;
+            let totalIncome = 0;
 
             document.querySelectorAll('#edit-floats-container .floor-card').forEach(fc => {
                 let floorName = fc.querySelector('.floor-name-input').value || 'طابق غير محدد';
@@ -406,9 +425,15 @@
                 fc.querySelectorAll('.unit-row').forEach(ur => {
                     let t = ur.querySelector('.unit-type').value;
                     let n = ur.querySelector('.unit-no').value;
+                    let s = ur.querySelector('.unit-status').value;
+                    let r = s === 'مؤجرة' ? (parseFloat(ur.querySelector('.unit-rent').value) || 0) : 0;
+
                     if(t && n) {
-                        unitsArr.push({ type: t, no: n });
+                        unitsArr.push({ type: t, no: n, status: s, rent: r });
                         totalUnitsCount++;
+                        if(s === 'مؤجرة') {
+                            totalIncome += r;
+                        }
                     }
                 });
                 floatsArr.push({ floor: floorName, units: unitsArr });
@@ -417,6 +442,7 @@
             row.querySelector('.prop-name').innerText = name;
             row.querySelector('.prop-location').innerText = location;
             row.querySelector('.prop-units').innerText = totalUnitsCount + ' وحدة';
+            row.querySelector('.prop-income').innerText = totalIncome + ' ر.ع';
             row.setAttribute('data-floats', JSON.stringify(floatsArr));
 
             closeEditModal();
@@ -447,6 +473,7 @@
 
             let floatsArr = [];
             let totalUnitsCount = 0;
+            let totalIncome = 0;
 
             document.querySelectorAll('#add-floats-container .floor-card').forEach(fc => {
                 let floorName = fc.querySelector('.floor-name-input').value || 'طابق غير محدد';
@@ -454,9 +481,15 @@
                 fc.querySelectorAll('.unit-row').forEach(ur => {
                     let t = ur.querySelector('.unit-type').value;
                     let n = ur.querySelector('.unit-no').value;
+                    let s = ur.querySelector('.unit-status').value;
+                    let r = s === 'مؤجرة' ? (parseFloat(ur.querySelector('.unit-rent').value) || 0) : 0;
+
                     if(t && n) {
-                        unitsArr.push({ type: t, no: n });
+                        unitsArr.push({ type: t, no: n, status: s, rent: r });
                         totalUnitsCount++;
+                        if(s === 'مؤجرة') {
+                            totalIncome += r;
+                        }
                     }
                 });
                 floatsArr.push({ floor: floorName, units: unitsArr });
@@ -474,6 +507,7 @@
                 <td class="prop-name">${name}</td>
                 <td class="prop-location">${location}</td>
                 <td class="prop-units">${totalUnitsCount} وحدة</td>
+                <td class="prop-income" style="font-weight: bold; color: #27ae60;">${totalIncome} ر.ع</td>
                 <td>
                     <div class="action-dropdown">
                         <button class="action-btn" onclick="toggleMenu(event, 'menu-${newId}')">⋮</button>
