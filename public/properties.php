@@ -20,7 +20,7 @@
         
         .logout-section { padding: 15px 20px; border-top: 1px solid #f2e8e6; background-color: #fcf6f5; z-index: 10; }
         .logout-btn { display: flex; align-items: center; justify-content: center; padding: 11px; background-color: #fde8e8; color: #c0392b; text-decoration: none; border-radius: 8px; font-size: 14px; transition: all 0.2s; font-weight: bold; border: 1px solid #f5c6cb; }
-        .logout-btn:hover { background-color: #e74c3c; color: white; }
+        .logout-btn:hover { background-color: #c0392b; color: white; }
         
         main { flex-grow: 1; display: flex; flex-direction: column; background-color: #f9fafb; overflow-y: auto; height: 100vh; }
         .top-header-bar { background-color: #fcf6f5; padding: 15px 30px; border-bottom: 1px solid #f2e8e6; text-align: right; font-size: 22px; font-weight: 700; color: #2e5a36; }
@@ -54,7 +54,7 @@
         
         /* النوافذ المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: white; width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-box { background: white; width: 650px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
         .modal-header h3 { font-size: 16px; color: #333; font-weight: bold; }
         .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
@@ -62,18 +62,20 @@
         .modal-body { padding: 20px; overflow-y: auto; flex-grow: 1; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; text-align: right; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; background: #fff; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; background: #fff; }
         
-        /* تصميم قسم الوحدات وعلامة الزائد (+) */
-        .units-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-top: 1px dashed #ddd; padding-top: 15px; }
-        .units-section-header h4 { font-size: 14px; color: #2e5a36; font-weight: bold; }
-        .btn-add-unit { background-color: #27ae60; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: background 0.2s; }
-        .btn-add-unit:hover { background-color: #219653; }
+        /* تصميم هيكل الطوابق والوحدات */
+        .floats-section-title { font-size: 15px; color: #2e5a36; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #27ae60; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .floor-card { background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .floor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .floor-name-input { font-weight: bold; width: 60% !important; padding: 6px 10px !important; }
         
-        .unit-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 6px; }
-        .unit-row select, .unit-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
-        .unit-row input.unit-count { max-width: 80px; }
-        .btn-remove-unit { background: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .unit-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; background: #fff; padding: 8px; border: 1px solid #eee; border-radius: 6px; }
+        .unit-row select, .unit-row input { flex: 1; padding: 7px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        
+        .btn-add-floor { background-color: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .btn-add-unit-in-floor { background-color: #3498db; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .btn-remove { background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         
         .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-start; background: #fafafa; }
         .btn-save { background-color: #27ae60; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
@@ -146,11 +148,11 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr id="row-1" data-units='[{"type":"محل","count":"10","nums":"1 إلى 10"},{"type":"مخزن","count":"2","nums":"م1, م2"}]'>
+                    <tr id="row-1" data-floats='[{"floor":"الطابق الأرضي","units":[{"type":"محل","no":"1"},{"type":"محل","no":"2"}]},{"floor":"الطابق الأول","units":[{"type":"شقة","no":"101"},{"type":"شقة","no":"102"}]}]'>
                         <td>1</td>
                         <td class="prop-name">عمارة الروضة التجارية</td>
                         <td class="prop-location">قرية الروضة - الشارع العام</td>
-                        <td class="prop-units">12 وحدة</td>
+                        <td class="prop-units">4 وحدة</td>
                         <td>
                             <div class="action-dropdown">
                                 <button class="action-btn" onclick="toggleMenu(event, 'menu-1')">⋮</button>
@@ -163,27 +165,10 @@
                             </div>
                         </td>
                     </tr>
-                    <tr id="row-2" data-units='[{"type":"شقة","count":"8","nums":"ش1 إلى ش8"}]'>
-                        <td>2</td>
-                        <td class="prop-name">مجمع النور السكني</td>
-                        <td class="prop-location">حي المدارس</td>
-                        <td class="prop-units">8 وحدات</td>
-                        <td>
-                            <div class="action-dropdown">
-                                <button class="action-btn" onclick="toggleMenu(event, 'menu-2')">⋮</button>
-                                <div id="menu-2" class="dropdown-menu">
-                                    <a href="#" onclick="openEditModal(2)">تعديل</a>
-                                    <a href="#" onclick="openUnitsModal(2)">وحدات الوقف</a>
-                                    <a href="#">عقود الإيجار</a>
-                                    <a href="#" class="delete-item">حذف</a>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
             <div class="pagination">
-                <span id="paginationText">عرض 1 إلى 2 من 2 مدخلات</span>
+                <span id="paginationText">عرض 1 إلى 1 من 1 مدخلات</span>
                 <button>&lt;</button>
                 <button class="active">1</button>
                 <button>&gt;</button>
@@ -209,11 +194,11 @@
                     <input type="text" id="editPropLocation">
                 </div>
                 
-                <div class="units-section-header">
-                    <h4>تفاصيل وحدات الوقف</h4>
-                    <button type="button" class="btn-add-unit" onclick="addUnitRow('edit-units-container')">+</button>
+                <div class="floats-section-title">
+                    <span>طوابق ووحدات العقار</span>
+                    <button type="button" class="btn-add-floor" onclick="addFloorRow('edit-floats-container')">➕ إضافة طابق</button>
                 </div>
-                <div id="edit-units-container"></div>
+                <div id="edit-floats-container"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn-save" onclick="saveEditChanges()">حفظ التغييرات</button>
@@ -238,11 +223,11 @@
                     <input type="text" id="addPropLocation" placeholder="أدخل مكان الوقف">
                 </div>
 
-                <div class="units-section-header">
-                    <h4>تفاصيل وحدات الوقف</h4>
-                    <button type="button" class="btn-add-unit" onclick="addUnitRow('add-units-container')">+</button>
+                <div class="floats-section-title">
+                    <span>طوابق ووحدات العقار</span>
+                    <button type="button" class="btn-add-floor" onclick="addFloorRow('add-floats-container')">➕ إضافة طابق</button>
                 </div>
-                <div id="add-units-container"></div>
+                <div id="add-floats-container"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn-save" onclick="saveNewProperty()">حفظ</button>
@@ -250,7 +235,7 @@
         </div>
     </div>
 
-    <!-- نافذة عرض وحدات الوقف -->
+    <!-- نافذة عرض وحدات الوقف مرزبة بالطوابق وحالة التأجير -->
     <div id="unitsModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -277,7 +262,7 @@
     </div>
 
     <script>
-        let propertyCount = 2;
+        let propertyCount = 1;
 
         function toggleMenu(event, menuId) {
             event.stopPropagation();
@@ -294,9 +279,40 @@
             });
         }
 
-        /* تعديل دالة إضافة صف الوحدة لتكون القيمة الافتراضية "نوع الوحدة" غير قابلة للاختيار */
-        function addUnitRow(containerId, type = '', count = '', nums = '') {
+        /* إضافة طابق جديد */
+        function addFloorRow(containerId, floorName = '', units = []) {
             let container = document.getElementById(containerId);
+            let floorDiv = document.createElement('div');
+            floorDiv.className = 'floor-card';
+            
+            let floorId = 'floor_' + Math.random().toString(36).substr(2, 9);
+            floorDiv.innerHTML = `
+                <div class="floor-header">
+                    <input type="text" class="floor-name-input" placeholder="اسم الطابق (مثال: الطابق الأول)" value="${floorName}">
+                    <button type="button" class="btn-remove" onclick="this.closest('.floor-card').remove()">حذف الطابق</button>
+                </div>
+                <div class="units-in-floor" id="${floorId}"></div>
+                <button type="button" class="btn-add-unit-in-floor" onclick="addUnitInFloor('${floorId}')">➕ إضافة وحدة</button>
+            `;
+            container.appendChild(floorDiv);
+
+            let unitsContainer = floorDiv.querySelector('.units-in-floor');
+            if(units && units.length > 0) {
+                units.forEach(u => {
+                    addUnitRowObj(unitsContainer, u.type, u.no);
+                });
+            } else {
+                addUnitRowObj(unitsContainer, '', '');
+            }
+        }
+
+        /* إضافة وحدة داخل الطابق */
+        function addUnitInFloor(floorId, type = '', no = '') {
+            let container = document.getElementById(floorId);
+            addUnitRowObj(container, type, no);
+        }
+
+        function addUnitRowObj(container, type, no) {
             let row = document.createElement('div');
             row.className = 'unit-row';
             row.innerHTML = `
@@ -307,31 +323,40 @@
                     <option value="مخزن" ${type==='مخزن'?'selected':''}>مخزن</option>
                     <option value="منزل" ${type==='منزل'?'selected':''}>منزل</option>
                 </select>
-                <input type="number" class="unit-count" placeholder="العدد" value="${count}">
-                <input type="text" class="unit-nums" placeholder="أرقام الوحدات (مثال: 1-10)" value="${nums}">
-                <button type="button" class="btn-remove-unit" onclick="this.parentElement.remove()">حذف</button>
+                <input type="text" class="unit-no" placeholder="رقم أو اسم الوحدة (مثال: 101)" value="${no}">
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">حذف</button>
             `;
             container.appendChild(row);
         }
 
+        /* فتح نافذة عرض وحدات العقار بالطوابق وحالة التأجير */
         function openUnitsModal(id) {
             let row = document.getElementById('row-' + id);
             let propName = row.querySelector('.prop-name').innerText;
-            let unitsData = JSON.parse(row.getAttribute('data-units') || '[]');
+            let floatsData = JSON.parse(row.getAttribute('data-floats') || '[]');
 
-            document.getElementById('unitsModalTitle').innerText = 'وحدات الوقف: ' + propName;
+            document.getElementById('unitsModalTitle').innerText = 'وحدات العقار: ' + propName;
             let contentDiv = document.getElementById('unitsDetailsContent');
             
-            if(unitsData.length === 0) {
-                contentDiv.innerHTML = '<p style="color: #7f8c8d; text-align: center;">لا توجد وحدات مضافة لهذا العقار.</p>';
+            if(floatsData.length === 0) {
+                contentDiv.innerHTML = '<p style="color: #7f8c8d; text-align: center;">لا توجد طوابق أو وحدات مضافة لهذا العقار.</p>';
             } else {
-                let html = '<ul style="list-style: none; padding: 0;">';
-                unitsData.forEach(u => {
-                    html += `<li style="background: #f8f9fa; margin-bottom: 8px; padding: 10px 15px; border-radius: 6px; border-right: 4px solid #27ae60;">
-                        <strong>نوع الوحدة:</strong> ${u.type} | <strong>العدد:</strong> ${u.count} | <strong>الأرقام:</strong> ${u.nums}
-                    </li>`;
+                let html = '';
+                floatsData.forEach(f => {
+                    html += `<div style="background: #fdfdfd; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+                        <h4 style="color: #2e5a36; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px;">🏢 ${f.floor}</h4>`;
+                    if(!f.units || f.units.length === 0) {
+                        html += '<p style="font-size: 13px; color: #777;">لا توجد وحدات في هذا الطابق.</p>';
+                    } else {
+                        html += '<table style="width: 100%; font-size: 13px;"><thead><tr style="background:#f1f5f9;"><th>نوع الوحدة</th><th>رقم/اسم الوحدة</th><th>حالة التأجير</th><th>القيمة الإيجارية</th></tr></thead><tbody>';
+                        f.units.forEach(u => {
+                            // مبدئياً الحالة غير مؤجرة (تأتي لاحقاً من عقود الإيجار)
+                            html += `<tr><td>${u.type}</td><td>${u.no}</td><td><span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px; font-size:12px;">غير مؤجرة</span></td><td>-</td></tr>`;
+                        });
+                        html += '</tbody></table>';
+                    }
+                    html += `</div>`;
                 });
-                html += '</ul>';
                 contentDiv.innerHTML = html;
             }
 
@@ -346,16 +371,16 @@
             let row = document.getElementById('row-' + id);
             let name = row.querySelector('.prop-name').innerText;
             let location = row.querySelector('.prop-location').innerText;
-            let unitsData = JSON.parse(row.getAttribute('data-units') || '[]');
+            let floatsData = JSON.parse(row.getAttribute('data-floats') || '[]');
 
             document.getElementById('editPropId').value = id;
             document.getElementById('editPropName').value = name;
             document.getElementById('editPropLocation').value = location;
             
-            let container = document.getElementById('edit-units-container');
+            let container = document.getElementById('edit-floats-container');
             container.innerHTML = '';
-            unitsData.forEach(u => {
-                addUnitRow('edit-units-container', u.type, u.count, u.nums);
+            floatsData.forEach(f => {
+                addFloorRow('edit-floats-container', f.floor, f.units);
             });
 
             document.getElementById('editModal').style.display = 'flex';
@@ -372,31 +397,27 @@
             let name = document.getElementById('editPropName').value;
             let location = document.getElementById('editPropLocation').value;
 
-            let unitsArr = [];
-            let totalSum = 0;
-            let isValid = true;
-            
-            document.querySelectorAll('#edit-units-container .unit-row').forEach(r => {
-                let t = r.querySelector('.unit-type').value;
-                let cnt = parseInt(r.querySelector('.unit-count').value) || 0;
-                if(!t) { isValid = false; }
-                totalSum += cnt;
-                unitsArr.push({
-                    type: t,
-                    count: cnt,
-                    nums: r.querySelector('.unit-nums').value
-                });
-            });
+            let floatsArr = [];
+            let totalUnitsCount = 0;
 
-            if(!isValid) {
-                alert('الرجاء اختيار نوع الوحدة لكل السطور المضافة');
-                return;
-            }
+            document.querySelectorAll('#edit-floats-container .floor-card').forEach(fc => {
+                let floorName = fc.querySelector('.floor-name-input').value || 'طابق غير محدد';
+                let unitsArr = [];
+                fc.querySelectorAll('.unit-row').forEach(ur => {
+                    let t = ur.querySelector('.unit-type').value;
+                    let n = ur.querySelector('.unit-no').value;
+                    if(t && n) {
+                        unitsArr.push({ type: t, no: n });
+                        totalUnitsCount++;
+                    }
+                });
+                floatsArr.push({ floor: floorName, units: unitsArr });
+            });
 
             row.querySelector('.prop-name').innerText = name;
             row.querySelector('.prop-location').innerText = location;
-            row.querySelector('.prop-units').innerText = totalSum + ' وحدة';
-            row.setAttribute('data-units', JSON.stringify(unitsArr));
+            row.querySelector('.prop-units').innerText = totalUnitsCount + ' وحدة';
+            row.setAttribute('data-floats', JSON.stringify(floatsArr));
 
             closeEditModal();
             document.getElementById('alertMessage').innerText = "Property updated successfully";
@@ -406,8 +427,8 @@
         function openAddModal() {
             document.getElementById('addPropName').value = '';
             document.getElementById('addPropLocation').value = '';
-            document.getElementById('add-units-container').innerHTML = '';
-            addUnitRow('add-units-container', '', '', '');
+            document.getElementById('add-floats-container').innerHTML = '';
+            addFloorRow('add-floats-container', 'الطابق الأرضي', []);
             document.getElementById('addModal').style.display = 'flex';
         }
 
@@ -424,26 +445,22 @@
                 return;
             }
 
-            let unitsArr = [];
-            let totalSum = 0;
-            let isValid = true;
+            let floatsArr = [];
+            let totalUnitsCount = 0;
 
-            document.querySelectorAll('#add-units-container .unit-row').forEach(r => {
-                let t = r.querySelector('.unit-type').value;
-                let cnt = parseInt(r.querySelector('.unit-count').value) || 0;
-                if(!t) { isValid = false; }
-                totalSum += cnt;
-                unitsArr.push({
-                    type: t,
-                    count: cnt,
-                    nums: r.querySelector('.unit-nums').value
+            document.querySelectorAll('#add-floats-container .floor-card').forEach(fc => {
+                let floorName = fc.querySelector('.floor-name-input').value || 'طابق غير محدد';
+                let unitsArr = [];
+                fc.querySelectorAll('.unit-row').forEach(ur => {
+                    let t = ur.querySelector('.unit-type').value;
+                    let n = ur.querySelector('.unit-no').value;
+                    if(t && n) {
+                        unitsArr.push({ type: t, no: n });
+                        totalUnitsCount++;
+                    }
                 });
+                floatsArr.push({ floor: floorName, units: unitsArr });
             });
-
-            if(!isValid) {
-                alert('الرجاء اختيار نوع الوحدة لكل السطور المضافة');
-                return;
-            }
 
             propertyCount++;
             let newId = propertyCount;
@@ -451,12 +468,12 @@
 
             let newRow = document.createElement('tr');
             newRow.id = 'row-' + newId;
-            newRow.setAttribute('data-units', JSON.stringify(unitsArr));
+            newRow.setAttribute('data-floats', JSON.stringify(floatsArr));
             newRow.innerHTML = `
                 <td>${newId}</td>
                 <td class="prop-name">${name}</td>
                 <td class="prop-location">${location}</td>
-                <td class="prop-units">${totalSum} وحدة</td>
+                <td class="prop-units">${totalUnitsCount} وحدة</td>
                 <td>
                     <div class="action-dropdown">
                         <button class="action-btn" onclick="toggleMenu(event, 'menu-${newId}')">⋮</button>
