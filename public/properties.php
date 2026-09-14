@@ -52,7 +52,7 @@
         .dropdown-menu a.delete-item { color: #c0392b; }
         .dropdown-menu a.delete-item:hover { background-color: #fde8e8; }
         
-        /* النافذة المنبثقة */
+        /* النافذة المنبثقة للتعديل */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: white; width: 550px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
@@ -66,6 +66,15 @@
         .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-start; background: #fafafa; }
         .btn-save { background-color: #27ae60; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
         .btn-save:hover { background-color: #219653; }
+
+        /* نافذة إشعار النجاح (Alert Modal) */
+        .alert-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); z-index: 2000; justify-content: center; align-items: center; }
+        .alert-box { background: white; width: 420px; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); padding: 30px 20px; text-align: center; animation: fadeIn 0.2s ease-in-out; }
+        .success-icon-circle { width: 70px; height: 70px; border: 3px solid #27ae60; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px auto; color: #27ae60; font-size: 32px; }
+        .alert-box h2 { font-size: 20px; color: #333; margin-bottom: 10px; font-weight: bold; }
+        .alert-box p { font-size: 14px; color: #666; margin-bottom: 25px; }
+        .btn-ok { background-color: #5c6bc0; color: white; border: none; padding: 8px 40px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-ok:hover { background-color: #3f51b5; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
@@ -198,6 +207,16 @@
         </div>
     </div>
 
+    <!-- نافذة إشعار النجاح المنبثقة (Success Alert Modal) -->
+    <div id="successAlert" class="alert-overlay">
+        <div class="alert-box">
+            <div class="success-icon-circle">✓</div>
+            <h2>نجاح</h2>
+            <p>Property updated successfully</p>
+            <button class="btn-ok" onclick="closeSuccessAlert()">OK</button>
+        </div>
+    </div>
+
     <script>
         function toggleMenu(event, menuId) {
             event.stopPropagation();
@@ -241,6 +260,12 @@
             row.querySelector('.prop-units').innerText = document.getElementById('editPropUnits').value;
 
             closeEditModal();
+            // إظهار إشعار النجاح المطابق تماماً للصورة
+            document.getElementById('successAlert').style.display = 'flex';
+        }
+
+        function closeSuccessAlert() {
+            document.getElementById('successAlert').style.display = 'none';
         }
     </script>
 </body>
