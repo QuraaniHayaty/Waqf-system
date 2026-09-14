@@ -42,9 +42,9 @@
         th { background-color: #f8f9fa; color: #2e5a36; font-weight: 600; }
         tr:hover { background-color: #fcfcfc; }
         
-        /* النافذة المنبثقة */
+        /* النوافذ المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: white; width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-box { background: white; width: 650px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
         .modal-header h3 { font-size: 16px; color: #333; font-weight: bold; }
         .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
@@ -53,6 +53,13 @@
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; text-align: right; font-weight: bold; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; background: #fff; }
+        
+        /* إرفاق عدة ملفات */
+        .attachment-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .btn-add-attachment { background-color: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-add-attachment:hover { background-color: #2980b9; }
+        .btn-remove-att { background: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+
         .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-start; background: #fafafa; }
         .btn-save { background-color: #27ae60; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
         .btn-save:hover { background-color: #219653; }
@@ -92,7 +99,7 @@
         <div class="top-banner">
             <div class="banner-title">
                 <h1>عقود الإيجارات</h1>
-                <p>إدارة وإبرام عقود الإيجار ورفع المستندات والمرفقات</p>
+                <p>إدارة وإبرام عقود الإيجار ورفع المستندات والمرفقات المتعددة</p>
             </div>
         </div>
 
@@ -112,22 +119,27 @@
                         <th>الطابق والوحدة</th>
                         <th>المستأجر ورقم الهاتف</th>
                         <th>القيمة الإيجارية</th>
-                        <th>عقد الإيجار (Attach)</th>
+                        <th>مرفقات العقد (Attachments)</th>
                         <th>الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody id="leasesTableBody">
-                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50" data-filename="عقد_محل_1.pdf">
+                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50" data-files='["عقد_محل_1.pdf", "السجل_التجاري.pdf"]'>
                         <td>1</td>
                         <td class="col-prop">عمارة الروضة التجارية</td>
                         <td class="col-unit">الطابق الأرضي (محل رقم 1)</td>
                         <td class="col-tenant">شركة الأفق للتجارة<br><small style="color:#777;">📞 95000000</small></td>
                         <td class="col-amount">50 ر.ع</td>
-                        <td class="col-file">
-                            <div style="display:flex; gap:5px; align-items:center;">
-                                <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد_محل_1.pdf</a>
-                                <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
-                                <button onclick="this.closest('tr').remove()" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="حذف العقد">🗑️</button>
+                        <td class="col-files">
+                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                <div style="display:flex; gap:5px; align-items:center;">
+                                    <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px;">📄 عقد_محل_1.pdf</a>
+                                    <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                                </div>
+                                <div style="display:flex; gap:5px; align-items:center;">
+                                    <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px;">📄 السجل_التجاري.pdf</a>
+                                    <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                                </div>
                             </div>
                         </td>
                         <td><button onclick="openEditLeaseModal(1)" style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">تعديل</button></td>
@@ -182,9 +194,11 @@
                     <label>القيمة الإيجارية الشهرية (ر.ع)</label>
                     <input type="number" id="leaseAmount" placeholder="أدخل المبلغ">
                 </div>
+                
                 <div class="form-group">
-                    <label>إرفاق عقد الإيجار (Attach File)</label>
-                    <input type="file" id="leaseFile">
+                    <label>مرفقات العقد والمستندات (أوراق متعددة)</label>
+                    <div id="add-attachments-container"></div>
+                    <button type="button" class="btn-add-attachment" onclick="addAttachmentRow('add-attachments-container')">➕ إضافة مرفق جديد</button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -197,7 +211,7 @@
     <div id="editLeaseModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>تعديل عقد الإيجار</h3>
+                <h3>تعديل عقد الإيجار والمرفقات</h3>
                 <button class="close-modal" onclick="closeEditLeaseModal()">&times;</button>
             </div>
             <div class="modal-body">
@@ -230,9 +244,11 @@
                     <label>القيمة الإيجارية الشهرية (ر.ع)</label>
                     <input type="number" id="editLeaseAmount">
                 </div>
+
                 <div class="form-group">
-                    <label>استبدال أو تعديل عقد الإيجار (Attach File)</label>
-                    <input type="file" id="editLeaseFile">
+                    <label>مرفقات العقد والمستندات</label>
+                    <div id="edit-attachments-container"></div>
+                    <button type="button" class="btn-add-attachment" onclick="addAttachmentRow('edit-attachments-container')">➕ إضافة مرفق جديد</button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -249,6 +265,17 @@
             ]
         };
 
+        function addAttachmentRow(containerId, fileName = '') {
+            let container = document.getElementById(containerId);
+            let row = document.createElement('div');
+            row.className = 'attachment-row';
+            row.innerHTML = `
+                <input type="file" class="att-file" style="flex:1;">
+                <button type="button" class="btn-remove-att" onclick="this.parentElement.remove()">حذف</button>
+            `;
+            container.appendChild(row);
+        }
+
         function openAddLeaseModal() {
             document.getElementById('leasePropSelect').value = "";
             document.getElementById('leaseFloorSelect').innerHTML = '<option value="" disabled selected>اختر العقار أولاً</option>';
@@ -256,7 +283,10 @@
             document.getElementById('leaseTenant').value = '';
             document.getElementById('leasePhone').value = '';
             document.getElementById('leaseAmount').value = '';
-            document.getElementById('leaseFile').value = '';
+            
+            document.getElementById('add-attachments-container').innerHTML = '';
+            addAttachmentRow('add-attachments-container'); // سطر افتراضي أول
+
             document.getElementById('addLeaseModal').style.display = 'flex';
         }
 
@@ -309,6 +339,7 @@
             let tenant = row.getAttribute('data-tenant');
             let phone = row.getAttribute('data-phone');
             let amount = row.getAttribute('data-amount');
+            let files = JSON.parse(row.getAttribute('data-files') || '["عقد_إيجار.pdf"]');
 
             document.getElementById('editLeaseId').value = id;
             document.getElementById('editLeasePropSelect').value = prop;
@@ -322,7 +353,12 @@
             document.getElementById('editLeaseTenant').value = tenant;
             document.getElementById('editLeasePhone').value = phone;
             document.getElementById('editLeaseAmount').value = amount;
-            document.getElementById('editLeaseFile').value = ''; // تصفير حقل الملف
+
+            let attContainer = document.getElementById('edit-attachments-container');
+            attContainer.innerHTML = '';
+            files.forEach(f => {
+                addAttachmentRow('edit-attachments-container');
+            });
 
             document.getElementById('editLeaseModal').style.display = 'flex';
         }
@@ -341,13 +377,17 @@
             let tenant = document.getElementById('editLeaseTenant').value;
             let phone = document.getElementById('editLeasePhone').value;
             let amount = document.getElementById('editLeaseAmount').value;
-            let fileInput = document.getElementById('editLeaseFile');
 
-            let fileName = row.getAttribute('data-filename');
-            if (fileInput.files.length > 0) {
-                fileName = fileInput.files[0].name;
-                row.setAttribute('data-filename', fileName);
-            }
+            let fileNames = [];
+            document.querySelectorAll('#edit-attachments-container .attachment-row').forEach((ar, idx) => {
+                let fi = ar.querySelector('.att-file');
+                if(fi.files.length > 0) {
+                    fileNames.push(fi.files[0].name);
+                } else {
+                    fileNames.push('مرفق_' + (idx + 1) + '.pdf');
+                }
+            });
+            if(fileNames.length === 0) fileNames.push('عقد_إيجار.pdf');
 
             row.setAttribute('data-prop', prop);
             row.setAttribute('data-floor', floor);
@@ -355,23 +395,27 @@
             row.setAttribute('data-tenant', tenant);
             row.setAttribute('data-phone', phone);
             row.setAttribute('data-amount', amount);
+            row.setAttribute('data-files', JSON.stringify(fileNames));
 
             row.querySelector('.col-prop').innerText = prop;
             row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
             row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
             row.querySelector('.col-amount').innerText = `${amount} ر.ع`;
             
-            // تحديث عرض اسم الملف في الجدول
-            row.querySelector('.col-file').innerHTML = `
-                <div style="display:flex; gap:5px; align-items:center;">
-                    <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 ${fileName}</a>
-                    <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
-                    <button onclick="this.closest('tr').remove()" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="حذف العقد">🗑️</button>
-                </div>
-            `;
+            let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
+            fileNames.forEach(fn => {
+                filesHtml += `
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px;">📄 ${fn}</a>
+                        <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                    </div>
+                `;
+            });
+            filesHtml += '</div>';
+            row.querySelector('.col-files').innerHTML = filesHtml;
 
             closeEditLeaseModal();
-            alert('تم تحديث العقد والمرفق بنجاح!');
+            alert('تم تحديث العقد والمرفقات بنجاح!');
         }
 
         function saveNewLease() {
@@ -381,14 +425,23 @@
             let tenant = document.getElementById('leaseTenant').value;
             let phone = document.getElementById('leasePhone').value;
             let amount = document.getElementById('leaseAmount').value;
-            let fileInput = document.getElementById('leaseFile');
 
             if(!prop || !floor || !unit || !tenant || !amount) {
                 alert('الرجاء تعبئة الحقول الأساسية');
                 return;
             }
 
-            let fileName = fileInput.files.length > 0 ? fileInput.files[0].name : 'عقد_إيجار.pdf';
+            let fileNames = [];
+            document.querySelectorAll('#add-attachments-container .attachment-row').forEach((ar, idx) => {
+                let fi = ar.querySelector('.att-file');
+                if(fi.files.length > 0) {
+                    fileNames.push(fi.files[0].name);
+                } else {
+                    fileNames.push('مرفق_' + (idx + 1) + '.pdf');
+                }
+            });
+            if(fileNames.length === 0) fileNames.push('عقد_إيجار.pdf');
+
             let tbody = document.getElementById('leasesTableBody');
             let rowCount = tbody.rows.length + 1;
 
@@ -400,7 +453,18 @@
             newRow.setAttribute('data-tenant', tenant);
             newRow.setAttribute('data-phone', phone);
             newRow.setAttribute('data-amount', amount);
-            newRow.setAttribute('data-filename', fileName);
+            newRow.setAttribute('data-files', JSON.stringify(fileNames));
+
+            let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
+            fileNames.forEach(fn => {
+                filesHtml += `
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px;">📄 ${fn}</a>
+                        <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="طباعة">🖨️</button>
+                    </div>
+                `;
+            });
+            filesHtml += '</div>';
 
             newRow.innerHTML = `
                 <td>${rowCount}</td>
@@ -408,19 +472,13 @@
                 <td class="col-unit">${floor} (${unit})</td>
                 <td class="col-tenant">${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
                 <td class="col-amount">${amount} ر.ع</td>
-                <td class="col-file">
-                    <div style="display:flex; gap:5px; align-items:center;">
-                        <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 ${fileName}</a>
-                        <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
-                        <button onclick="this.closest('tr').remove()" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="حذف العقد">🗑️</button>
-                    </div>
-                </td>
+                <td class="col-files">${filesHtml}</td>
                 <td><button onclick="openEditLeaseModal(${rowCount})" style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">تعديل</button></td>
             `;
 
             tbody.appendChild(newRow);
             closeAddLeaseModal();
-            alert('تمت إضافة عقد الإيجار بنجاح!');
+            alert('تمت إضافة عقد الإيجار والمرفقات بنجاح!');
         }
     </script>
 </body>
