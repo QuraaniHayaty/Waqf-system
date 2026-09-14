@@ -48,7 +48,7 @@
                 <li><a href="index.php">لوحة التحكم</a></li>
                 <li><a href="properties.php" class="active">بيانات عقارات الوقف</a></li>
                 <li><a href="#">قائمة البرامج المستفيدة</a></li>
-                <li><a href="#">عقود الإيجارات</a></li>
+                <li><a href="leases.php">عقود الإيجارات</a></li>
                 <li><a href="#">الحسابات</a></li>
                 <li><a href="#">قائمة واتساب</a></li>
                 <li><a href="#">الإعدادات</a></li>
