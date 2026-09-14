@@ -72,6 +72,7 @@
         
         .unit-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 6px; }
         .unit-row select, .unit-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        .unit-row input.unit-count { max-width: 80px; }
         .btn-remove-unit { background: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         
         .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-start; background: #fafafa; }
@@ -207,10 +208,6 @@
                     <label>مكان الوقف</label>
                     <input type="text" id="editPropLocation">
                 </div>
-                <div class="form-group">
-                    <label>عدد الوحدات الإجمالي</label>
-                    <input type="text" id="editPropUnits">
-                </div>
                 
                 <div class="units-section-header">
                     <h4>تفاصيل وحدات الوقف</h4>
@@ -240,10 +237,6 @@
                     <label>مكان الوقف</label>
                     <input type="text" id="addPropLocation" placeholder="أدخل مكان الوقف">
                 </div>
-                <div class="form-group">
-                    <label>عدد الوحدات الإجمالي</label>
-                    <input type="text" id="addPropUnits" placeholder="أدخل العدد الإجمالي للوحدات">
-                </div>
 
                 <div class="units-section-header">
                     <h4>تفاصيل وحدات الوقف</h4>
@@ -257,7 +250,7 @@
         </div>
     </div>
 
-    <!-- نافذة عرض وحدات الوقف الخاصة بالعقار -->
+    <!-- نافذة عرض وحدات الوقف -->
     <div id="unitsModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -301,7 +294,6 @@
             });
         }
 
-        /* إدارة صفوف الوحدات (إضافة نوع الوحدة، العدد، وأرقامها) */
         function addUnitRow(containerId, type = 'محل', count = '', nums = '') {
             let container = document.getElementById(containerId);
             let row = document.createElement('div');
@@ -320,7 +312,6 @@
             container.appendChild(row);
         }
 
-        /* فتح نافذة عرض وحدات الوقف */
         function openUnitsModal(id) {
             let row = document.getElementById('row-' + id);
             let propName = row.querySelector('.prop-name').innerText;
@@ -353,13 +344,11 @@
             let row = document.getElementById('row-' + id);
             let name = row.querySelector('.prop-name').innerText;
             let location = row.querySelector('.prop-location').innerText;
-            let units = row.querySelector('.prop-units').innerText;
             let unitsData = JSON.parse(row.getAttribute('data-units') || '[]');
 
             document.getElementById('editPropId').value = id;
             document.getElementById('editPropName').value = name;
             document.getElementById('editPropLocation').value = location;
-            document.getElementById('editPropUnits').value = units;
             
             let container = document.getElementById('edit-units-container');
             container.innerHTML = '';
@@ -380,21 +369,22 @@
 
             let name = document.getElementById('editPropName').value;
             let location = document.getElementById('editPropLocation').value;
-            let totalUnits = document.getElementById('editPropUnits').value;
 
-            // جمع بيانات الوحدات المدخلة
             let unitsArr = [];
+            let totalSum = 0;
             document.querySelectorAll('#edit-units-container .unit-row').forEach(r => {
+                let cnt = parseInt(r.querySelector('.unit-count').value) || 0;
+                totalSum += cnt;
                 unitsArr.push({
                     type: r.querySelector('.unit-type').value,
-                    count: r.querySelector('.unit-count').value,
+                    count: cnt,
                     nums: r.querySelector('.unit-nums').value
                 });
             });
 
             row.querySelector('.prop-name').innerText = name;
             row.querySelector('.prop-location').innerText = location;
-            row.querySelector('.prop-units').innerText = totalUnits;
+            row.querySelector('.prop-units').innerText = totalSum + ' وحدة';
             row.setAttribute('data-units', JSON.stringify(unitsArr));
 
             closeEditModal();
@@ -405,9 +395,7 @@
         function openAddModal() {
             document.getElementById('addPropName').value = '';
             document.getElementById('addPropLocation').value = '';
-            document.getElementById('addPropUnits').value = '';
             document.getElementById('add-units-container').innerHTML = '';
-            // إضافة صف افتراضي أولي للمساعدة
             addUnitRow('add-units-container', 'محل', '', '');
             document.getElementById('addModal').style.display = 'flex';
         }
@@ -419,7 +407,6 @@
         function saveNewProperty() {
             let name = document.getElementById('addPropName').value;
             let location = document.getElementById('addPropLocation').value;
-            let totalUnits = document.getElementById('addPropUnits').value;
 
             if(!name || !location) {
                 alert('الرجاء تعبئة اسم الوقف ومكانه');
@@ -427,10 +414,13 @@
             }
 
             let unitsArr = [];
+            let totalSum = 0;
             document.querySelectorAll('#add-units-container .unit-row').forEach(r => {
+                let cnt = parseInt(r.querySelector('.unit-count').value) || 0;
+                totalSum += cnt;
                 unitsArr.push({
                     type: r.querySelector('.unit-type').value,
-                    count: r.querySelector('.unit-count').value,
+                    count: cnt,
                     nums: r.querySelector('.unit-nums').value
                 });
             });
@@ -446,7 +436,7 @@
                 <td>${newId}</td>
                 <td class="prop-name">${name}</td>
                 <td class="prop-location">${location}</td>
-                <td class="prop-units">${totalUnits}</td>
+                <td class="prop-units">${totalSum} وحدة</td>
                 <td>
                     <div class="action-dropdown">
                         <button class="action-btn" onclick="toggleMenu(event, 'menu-${newId}')">⋮</button>
