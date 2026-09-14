@@ -45,15 +45,13 @@
         th { background-color: #f8f9fa; color: #2e5a36; font-weight: 600; }
         tr:hover { background-color: #fcfcfc; }
         
-        /* أزرار الإجراءات داخل الجدول */
         .btn-action-edit { background: #eef2f5; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #333; }
         .btn-action-archive { background: #fef3c7; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #d97706; }
         .btn-action-delete { background: #fee2e2; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #dc2626; }
         .btn-action-restore { background: #dcfce7; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #166534; }
 
-        /* النوافذ المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: white; width: 850px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-box { background: white; width: 680px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
         .modal-header h3 { font-size: 16px; color: #333; font-weight: bold; }
         .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
@@ -63,6 +61,9 @@
         .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; text-align: right; font-weight: bold; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; background: #fff; }
         
+        .date-row { display: flex; gap: 10px; }
+        .date-row .form-group { flex: 1; margin-bottom: 0; }
+
         .attachment-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
         .btn-add-attachment { background-color: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn-add-attachment:hover { background-color: #2980b9; }
@@ -107,7 +108,7 @@
         <div class="top-banner">
             <div class="banner-title">
                 <h1>عقود الإيجارات</h1>
-                <p>إدارة وإبرام عقود الإيجار ورفع المستندات والمرفقات بجميع الصيغ</p>
+                <p>إدارة وإبرام عقود الإيجار وتحديد تواريخ وبداية ونهاية المدة بمرونة</p>
             </div>
         </div>
 
@@ -127,23 +128,25 @@
                         <th>اسم العقار</th>
                         <th>الطابق والوحدة</th>
                         <th>المستأجر ورقم الهاتف</th>
+                        <th>مدة العقد وتاريخه</th>
                         <th>القيمة الإيجارية</th>
-                        <th>مرفقات العقد (Attachments)</th>
+                        <th>المرفقات</th>
                         <th>الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody id="leasesTableBody">
-                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50" data-files='[{"name": "عقد_محل_1.pdf", "url": "#"}]'>
+                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50" data-start="2026-01-01" data-end="2028-01-01" data-files='[{"name": "عقد_محل_1.pdf", "url": "#"}]'>
                         <td>1</td>
                         <td class="col-prop">عمارة الروضة التجارية</td>
                         <td class="col-unit">الطابق الأرضي (محل رقم 1)</td>
                         <td class="col-tenant">شركة الأفق للتجارة<br><small style="color:#777;">📞 95000000</small></td>
+                        <td class="col-duration"><b>سنتان</b><br><small style="color:#666;">من: 2026-01-01<br>إلى: 2028-01-01</small></td>
                         <td class="col-amount">50 ر.ع</td>
                         <td class="col-files">
                             <div style="display:flex; flex-direction:column; gap:4px;">
                                 <div style="display:flex; gap:5px; align-items:center;">
-                                    <a href="#" onclick="viewFile('#', 'عقد_محل_1.pdf')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 عقد_محل_1.pdf</a>
-                                    <button onclick="viewFile('#', 'عقد_محل_1.pdf')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="معاينة وطباعة">🖨️</button>
+                                    <a href="#" onclick="viewFile('#', 'عقد_محل_1.pdf')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 عقد_محل_1.pdf</a>
+                                    <button onclick="viewFile('#', 'عقد_محل_1.pdf')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
                                 </div>
                             </div>
                         </td>
@@ -201,6 +204,18 @@
                     <label>رقم هاتف المستأجر</label>
                     <input type="text" id="leasePhone" placeholder="أدخل رقم الهاتف">
                 </div>
+                
+                <div class="date-row">
+                    <div class="form-group">
+                        <label>تاريخ بداية العقد (من)</label>
+                        <input type="date" id="leaseStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ نهاية العقد (إلى)</label>
+                        <input type="date" id="leaseEndDate">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>القيمة الإيجارية الشهرية (ر.ع)</label>
                     <input type="number" id="leaseAmount" placeholder="أدخل المبلغ">
@@ -251,6 +266,18 @@
                     <label>رقم هاتف المستأجر</label>
                     <input type="text" id="editLeasePhone">
                 </div>
+
+                <div class="date-row">
+                    <div class="form-group">
+                        <label>تاريخ بداية العقد (من)</label>
+                        <input type="date" id="editLeaseStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ نهاية العقد (إلى)</label>
+                        <input type="date" id="editLeaseEndDate">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>القيمة الإيجارية الشهرية (ر.ع)</label>
                     <input type="number" id="editLeaseAmount">
@@ -268,7 +295,7 @@
         </div>
     </div>
 
-    <!-- نافذة أرشيف العقود المنتهية بتصميم متطور مع بحث وتصفح وترقيم -->
+    <!-- نافذة أرشيف العقود المنتهية -->
     <div id="archiveModal" class="modal-overlay">
         <div class="modal-box" style="width: 900px;">
             <div class="modal-header">
@@ -285,6 +312,7 @@
                             <th>اسم العقار</th>
                             <th>الطابق والوحدة</th>
                             <th>المستأجر</th>
+                            <th>مدة العقد وتاريخه</th>
                             <th>القيمة</th>
                             <th>المرفقات</th>
                             <th>الإجراءات</th>
@@ -313,6 +341,28 @@
         let archiveData = [];
         let archiveCurrentPage = 1;
         const archiveRowsPerPage = 10;
+
+        /* دالة حساب المدة الزمنية تلقائياً بين تاريخين */
+        function calculateDurationText(startDateStr, endDateStr) {
+            if(!startDateStr || !endDateStr) return 'غير محدد';
+            let start = new Date(startDateStr);
+            let end = new Date(endDateStr);
+            if(end <= start) return 'تاريخ غير منطقي';
+
+            let diffTime = Math.abs(end - start);
+            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            let years = Math.floor(diffDays / 365);
+            let months = Math.floor((diffDays % 365) / 30);
+            let days = (diffDays % 365) % 30;
+
+            let textParts = [];
+            if(years > 0) textParts.push(years + (years === 1 ? ' سنة' : years === 2 ? ' سنتان' : ' سنوات'));
+            if(months > 0) textParts.push(months + ' شهر');
+            if(years === 0 && months === 0 && days > 0) textParts.push(days + ' يوم');
+
+            return textParts.join(' و ') || 'يوم واحد';
+        }
 
         function addAttachmentRow(containerId, fileObj = null) {
             let container = document.getElementById(containerId);
@@ -357,9 +407,11 @@
                     let tenant = row.getAttribute('data-tenant');
                     let phone = row.getAttribute('data-phone');
                     let amount = row.getAttribute('data-amount');
+                    let start = row.getAttribute('data-start');
+                    let end = row.getAttribute('data-end');
                     let files = JSON.parse(row.getAttribute('data-files') || '[]');
 
-                    archiveData.push({ id, prop, floor, unit, tenant, phone, amount, files });
+                    archiveData.push({ id, prop, floor, unit, tenant, phone, amount, start, end, files });
                     row.remove();
                     updateArchiveTable();
                     alert('تم نقل العقد إلى الأرشيف بنجاح.');
@@ -367,11 +419,9 @@
             }
         }
 
-        /* استعادة العقد من الأرشيف إلى الجدول الرئيسي */
         function restoreLease(index) {
             if(confirm('هل تريد استعادة هذا العقد وإعادته إلى قائمة عقود الإيجار النشطة؟')) {
                 let item = archiveData.splice(index, 1)[0];
-                
                 let tbody = document.getElementById('leasesTableBody');
                 let rowCount = tbody.rows.length + 1;
 
@@ -382,13 +432,15 @@
                     item.files.forEach(f => {
                         filesHtml += `
                             <div style="display:flex; gap:5px; align-items:center;">
-                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 ${f.name}</a>
-                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="معاينة وطباعة">🖨️</button>
+                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 ${f.name}</a>
+                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
                             </div>
                         `;
                     });
                 }
                 filesHtml += '</div>';
+
+                let durationText = calculateDurationText(item.start, item.end);
 
                 let newRow = document.createElement('tr');
                 newRow.id = 'lease-row-' + rowCount;
@@ -398,6 +450,8 @@
                 newRow.setAttribute('data-tenant', item.tenant);
                 newRow.setAttribute('data-phone', item.phone);
                 newRow.setAttribute('data-amount', item.amount);
+                newRow.setAttribute('data-start', item.start);
+                newRow.setAttribute('data-end', item.end);
                 newRow.setAttribute('data-files', JSON.stringify(item.files));
 
                 newRow.innerHTML = `
@@ -405,6 +459,7 @@
                     <td class="col-prop">${item.prop}</td>
                     <td class="col-unit">${item.floor} (${item.unit})</td>
                     <td class="col-tenant">${item.tenant}<br><small style="color:#777;">📞 ${item.phone || '-'}</small></td>
+                    <td class="col-duration"><b>${durationText}</b><br><small style="color:#666;">من: ${item.start}<br>إلى: ${item.end}</small></td>
                     <td class="col-amount">${item.amount} ر.ع</td>
                     <td class="col-files">${filesHtml}</td>
                     <td>
@@ -422,7 +477,6 @@
             }
         }
 
-        /* حذف نهائي من الأرشيف */
         function deleteFromArchive(index) {
             if(confirm('هل أنت متأكد من حذف هذا العقد نهائياً من الأرشيف؟')) {
                 archiveData.splice(index, 1);
@@ -453,7 +507,7 @@
 
             let tbody = document.getElementById('archiveTableBody');
             if(filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #777; padding: 20px;">لا توجد عقود مؤرشفة مطابقة للبحث.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #777; padding: 20px;">لا توجد عقود مؤرشفة مطابقة للبحث.</td></tr>';
                 document.getElementById('archivePaginationText').innerText = 'عرض 0 من 0';
                 document.getElementById('archivePaginationButtons').innerHTML = '';
                 return;
@@ -468,10 +522,13 @@
                 });
                 if(!filesHtml) filesHtml = 'لا توجد مرفقات';
 
+                let durationText = calculateDurationText(item.start, item.end);
+
                 html += `<tr>
                     <td>${item.prop}</td>
                     <td>${item.floor} (${item.unit})</td>
                     <td>${item.tenant}<br><small style="color:#777;">📞 ${item.phone || '-'}</small></td>
+                    <td><b>${durationText}</b><br><small style="color:#666;">من: ${item.start}<br>إلى: ${item.end}</small></td>
                     <td>${item.amount} ر.ع</td>
                     <td>${filesHtml}</td>
                     <td>
@@ -511,6 +568,8 @@
             document.getElementById('leaseTenant').value = '';
             document.getElementById('leasePhone').value = '';
             document.getElementById('leaseAmount').value = '';
+            document.getElementById('leaseStartDate').value = '';
+            document.getElementById('leaseEndDate').value = '';
             
             document.getElementById('add-attachments-container').innerHTML = '';
             addAttachmentRow('add-attachments-container');
@@ -567,6 +626,8 @@
             let tenant = row.getAttribute('data-tenant');
             let phone = row.getAttribute('data-phone');
             let amount = row.getAttribute('data-amount');
+            let start = row.getAttribute('data-start') || '';
+            let end = row.getAttribute('data-end') || '';
             let files = JSON.parse(row.getAttribute('data-files') || '[]');
 
             document.getElementById('editLeaseId').value = id;
@@ -581,6 +642,8 @@
             document.getElementById('editLeaseTenant').value = tenant;
             document.getElementById('editLeasePhone').value = phone;
             document.getElementById('editLeaseAmount').value = amount;
+            document.getElementById('editLeaseStartDate').value = start;
+            document.getElementById('editLeaseEndDate').value = end;
 
             let attContainer = document.getElementById('edit-attachments-container');
             attContainer.innerHTML = '';
@@ -610,6 +673,8 @@
             let tenant = document.getElementById('editLeaseTenant').value;
             let phone = document.getElementById('editLeasePhone').value;
             let amount = document.getElementById('editLeaseAmount').value;
+            let start = document.getElementById('editLeaseStartDate').value;
+            let end = document.getElementById('editLeaseEndDate').value;
 
             let fileObjects = [];
             let rows = document.querySelectorAll('#edit-attachments-container .attachment-row');
@@ -642,17 +707,22 @@
             });
 
             function finishSave(filesArr) {
+                let durationText = calculateDurationText(start, end);
+
                 row.setAttribute('data-prop', prop);
                 row.setAttribute('data-floor', floor);
                 row.setAttribute('data-unit', unit);
                 row.setAttribute('data-tenant', tenant);
                 row.setAttribute('data-phone', phone);
                 row.setAttribute('data-amount', amount);
+                row.setAttribute('data-start', start);
+                row.setAttribute('data-end', end);
                 row.setAttribute('data-files', JSON.stringify(filesArr));
 
                 row.querySelector('.col-prop').innerText = prop;
                 row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
                 row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
+                row.querySelector('.col-duration').innerHTML = `<b>${durationText}</b><br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small>`;
                 row.querySelector('.col-amount').innerText = `${amount} ر.ع`;
                 
                 let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
@@ -662,8 +732,8 @@
                     filesArr.forEach(f => {
                         filesHtml += `
                             <div style="display:flex; gap:5px; align-items:center;">
-                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 ${f.name}</a>
-                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="معاينة وطباعة">🖨️</button>
+                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 ${f.name}</a>
+                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
                             </div>
                         `;
                     });
@@ -672,7 +742,7 @@
                 row.querySelector('.col-files').innerHTML = filesHtml;
 
                 closeEditLeaseModal();
-                alert('تم تحديث العقد والمرفقات بنجاح!');
+                alert('تم تحديث العقد وتواريخ المدة بنجاح!');
             }
         }
 
@@ -683,9 +753,11 @@
             let tenant = document.getElementById('leaseTenant').value;
             let phone = document.getElementById('leasePhone').value;
             let amount = document.getElementById('leaseAmount').value;
+            let start = document.getElementById('leaseStartDate').value;
+            let end = document.getElementById('leaseEndDate').value;
 
-            if(!prop || !floor || !unit || !tenant || !amount) {
-                alert('الرجاء تعبئة الحقول الأساسية');
+            if(!prop || !floor || !unit || !tenant || !amount || !start || !end) {
+                alert('الرجاء تعبئة كافة الحقول بما فيها تواريخ بداية ونهاية العقد');
                 return;
             }
 
@@ -715,6 +787,7 @@
             function finishAdd(filesArr) {
                 let tbody = document.getElementById('leasesTableBody');
                 let rowCount = tbody.rows.length + 1;
+                let durationText = calculateDurationText(start, end);
 
                 let newRow = document.createElement('tr');
                 newRow.id = 'lease-row-' + rowCount;
@@ -724,6 +797,8 @@
                 newRow.setAttribute('data-tenant', tenant);
                 newRow.setAttribute('data-phone', phone);
                 newRow.setAttribute('data-amount', amount);
+                newRow.setAttribute('data-start', start);
+                newRow.setAttribute('data-end', end);
                 newRow.setAttribute('data-files', JSON.stringify(filesArr));
 
                 let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
@@ -733,8 +808,8 @@
                     filesArr.forEach(f => {
                         filesHtml += `
                             <div style="display:flex; gap:5px; align-items:center;">
-                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 ${f.name}</a>
-                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="معاينة وطباعة">🖨️</button>
+                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 ${f.name}</a>
+                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
                             </div>
                         `;
                     });
@@ -746,6 +821,7 @@
                     <td class="col-prop">${prop}</td>
                     <td class="col-unit">${floor} (${unit})</td>
                     <td class="col-tenant">${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
+                    <td class="col-duration"><b>${durationText}</b><br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small></td>
                     <td class="col-amount">${amount} ر.ع</td>
                     <td class="col-files">${filesHtml}</td>
                     <td>
@@ -759,7 +835,7 @@
 
                 tbody.appendChild(newRow);
                 closeAddLeaseModal();
-                alert('تمت إضافة عقد الإيجار بنجاح!');
+                alert('تمت إضافة عقد الإيجار وتحديد مدته بنجاح!');
             }
         }
     </script>
