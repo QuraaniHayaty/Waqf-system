@@ -110,7 +110,7 @@
                         <th>المعرف</th>
                         <th>اسم العقار</th>
                         <th>الطابق والوحدة</th>
-                        <th>المستأجر</th>
+                        <th>المستأجر ورقم الهاتف</th>
                         <th>القيمة الإيجارية</th>
                         <th>عقد الإيجار (Attach)</th>
                         <th>الإجراءات</th>
@@ -121,7 +121,7 @@
                         <td>1</td>
                         <td>عمارة الروضة التجارية</td>
                         <td>الطابق الأرضي (محل رقم 1)</td>
-                        <td>شركة الأفق للتجارة</td>
+                        <td>شركة الأفق للتجارة<br><small style="color:#777;">📞 95000000</small></td>
                         <td>50 ر.ع</td>
                         <td>
                             <div style="display:flex; gap:5px; align-items:center;">
@@ -143,7 +143,7 @@
         </div>
     </main>
 
-    <!-- نافذة إضافة عقد إيجار بقوائم منسدلة مترابطة -->
+    <!-- نافذة إضافة عقد إيجار -->
     <div id="addLeaseModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -175,6 +175,10 @@
                     <input type="text" id="leaseTenant" placeholder="أدخل اسم المستأجر">
                 </div>
                 <div class="form-group">
+                    <label>رقم هاتف المستأجر</label>
+                    <input type="text" id="leasePhone" placeholder="أدخل رقم الهاتف (مثال: 95000000)">
+                </div>
+                <div class="form-group">
                     <label>القيمة الإيجارية الشهرية (ر.ع)</label>
                     <input type="number" id="leaseAmount" placeholder="أدخل المبلغ">
                 </div>
@@ -190,7 +194,6 @@
     </div>
 
     <script>
-        /* بيانات وهمية تحاكي الطوابق والوحدات المسجلة في العقارات */
         const samplePropertyData = {
             "عمارة الروضة التجارية": [
                 { floor: "الطابق الأرضي", units: ["محل رقم 1", "محل رقم 2"] },
@@ -203,6 +206,7 @@
             document.getElementById('leaseFloorSelect').innerHTML = '<option value="" disabled selected>اختر العقار أولاً</option>';
             document.getElementById('leaseUnitSelect').innerHTML = '<option value="" disabled selected>اختر الطابق أولاً</option>';
             document.getElementById('leaseTenant').value = '';
+            document.getElementById('leasePhone').value = '';
             document.getElementById('leaseAmount').value = '';
             document.getElementById('leaseFile').value = '';
             document.getElementById('addLeaseModal').style.display = 'flex';
@@ -254,11 +258,12 @@
             let floor = document.getElementById('leaseFloorSelect').value;
             let unit = document.getElementById('leaseUnitSelect').value;
             let tenant = document.getElementById('leaseTenant').value;
+            let phone = document.getElementById('leasePhone').value;
             let amount = document.getElementById('leaseAmount').value;
             let fileInput = document.getElementById('leaseFile');
 
             if(!prop || !floor || !unit || !tenant || !amount) {
-                alert('الرجاء اختيار العقار، الطابق، الوحدة، وتعبئة باقي الحقول');
+                alert('الرجاء تعبئة الحقول الأساسية (العقار، الطابق، الوحدة، اسم المستأجر، والقيمة)');
                 return;
             }
 
@@ -271,7 +276,7 @@
                 <td>${rowCount}</td>
                 <td>${prop}</td>
                 <td>${floor} (${unit})</td>
-                <td>${tenant}</td>
+                <td>${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
                 <td>${amount} ر.ع</td>
                 <td>
                     <div style="display:flex; gap:5px; align-items:center;">
