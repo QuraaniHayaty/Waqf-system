@@ -30,7 +30,7 @@
         .banner-title p { font-size: 14px; opacity: 0.9; }
         
         .action-bar { padding: 0 25px; margin-bottom: 20px; display: flex; justify-content: flex-start; }
-        .btn-add { background-color: #27ae60; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; transition: background 0.2s; }
+        .btn-add { background-color: #27ae60; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; transition: background 0.2s; cursor: pointer; border: none; }
         .btn-add:hover { background-color: #219653; }
         
         .content-card { background: white; margin: 0 25px 25px 25px; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -52,7 +52,7 @@
         .dropdown-menu a.delete-item { color: #c0392b; }
         .dropdown-menu a.delete-item:hover { background-color: #fde8e8; }
         
-        /* النافذة المنبثقة للتعديل */
+        /* النوافذ المنبثقة (Modals) */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: white; width: 550px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
@@ -67,7 +67,7 @@
         .btn-save { background-color: #27ae60; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
         .btn-save:hover { background-color: #219653; }
 
-        /* نافذة إشعار النجاح (Alert Modal) */
+        /* نافذة إشعار النجاح */
         .alert-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); z-index: 2000; justify-content: center; align-items: center; }
         .alert-box { background: white; width: 420px; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); padding: 30px 20px; text-align: center; animation: fadeIn 0.2s ease-in-out; }
         .success-icon-circle { width: 70px; height: 70px; border: 3px solid #27ae60; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px auto; color: #27ae60; font-size: 32px; }
@@ -116,14 +116,14 @@
         </div>
 
         <div class="action-bar">
-            <a href="#" class="btn-add">➕ إضافة عقار</a>
+            <button class="btn-add" onclick="openAddModal()">➕ إضافة عقار</button>
         </div>
 
         <div class="content-card">
             <div class="search-box">
                 <input type="text" placeholder="بحث...">
             </div>
-            <table>
+            <table id="propertiesTable">
                 <thead>
                     <tr>
                         <th>المعرف</th>
@@ -133,7 +133,7 @@
                         <th>الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tableBody">
                     <tr id="row-1">
                         <td>1</td>
                         <td class="prop-name">عمارة الروضة التجارية</td>
@@ -171,7 +171,7 @@
                 </tbody>
             </table>
             <div class="pagination">
-                <span>عرض 1 إلى 2 من 2 مدخلات</span>
+                <span id="paginationText">عرض 1 إلى 2 من 2 مدخلات</span>
                 <button>&lt;</button>
                 <button class="active">1</button>
                 <button>&gt;</button>
@@ -202,22 +202,51 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-save" onclick="saveChanges()">حفظ التغييرات</button>
+                <button class="btn-save" onclick="saveEditChanges()">حفظ التغييرات</button>
             </div>
         </div>
     </div>
 
-    <!-- نافذة إشعار النجاح المنبثقة (Success Alert Modal) -->
+    <!-- نافذة إضافة عقار المنبثقة -->
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>إضافة عقار جديد</h3>
+                <button class="close-modal" onclick="closeAddModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>اسم الوقف</label>
+                    <input type="text" id="addPropName" placeholder="أدخل اسم الوقف">
+                </div>
+                <div class="form-group">
+                    <label>مكان الوقف</label>
+                    <input type="text" id="addPropLocation" placeholder="أدخل مكان الوقف">
+                </div>
+                <div class="form-group">
+                    <label>عدد الوحدات</label>
+                    <input type="text" id="addPropUnits" placeholder="أدخل عدد الوحدات">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-save" onclick="saveNewProperty()">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إشعار النجاح -->
     <div id="successAlert" class="alert-overlay">
         <div class="alert-box">
             <div class="success-icon-circle">✓</div>
             <h2>نجاح</h2>
-            <p>Property updated successfully</p>
+            <p id="alertMessage">تمت العملية بنجاح</p>
             <button class="btn-ok" onclick="closeSuccessAlert()">OK</button>
         </div>
     </div>
 
     <script>
+        let propertyCount = 2;
+
         function toggleMenu(event, menuId) {
             event.stopPropagation();
             document.querySelectorAll('.dropdown-menu').forEach(menu => {
@@ -251,7 +280,7 @@
             document.getElementById('editModal').style.display = 'none';
         }
 
-        function saveChanges() {
+        function saveEditChanges() {
             let id = document.getElementById('editPropId').value;
             let row = document.getElementById('row-' + id);
 
@@ -260,7 +289,60 @@
             row.querySelector('.prop-units').innerText = document.getElementById('editPropUnits').value;
 
             closeEditModal();
-            // إظهار إشعار النجاح المطابق تماماً للصورة
+            document.getElementById('alertMessage').innerText = "Property updated successfully";
+            document.getElementById('successAlert').style.display = 'flex';
+        }
+
+        function openAddModal() {
+            document.getElementById('addPropName').value = '';
+            document.getElementById('addPropLocation').value = '';
+            document.getElementById('addPropUnits').value = '';
+            document.getElementById('addModal').style.display = 'flex';
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        function saveNewProperty() {
+            let name = document.getElementById('addPropName').value;
+            let location = document.getElementById('addPropLocation').value;
+            let units = document.getElementById('addPropUnits').value;
+
+            if(!name || !location || !units) {
+                alert('الرجاء تعبئة جميع الحقول');
+                return;
+            }
+
+            propertyCount++;
+            let newId = propertyCount;
+            let tbody = document.getElementById('tableBody');
+
+            let newRow = document.createElement('tr');
+            newRow.id = 'row-' + newId;
+            newRow.innerHTML = `
+                <td>${newId}</td>
+                <td class="prop-name">${name}</td>
+                <td class="prop-location">${location}</td>
+                <td class="prop-units">${units}</td>
+                <td>
+                    <div class="action-dropdown">
+                        <button class="action-btn" onclick="toggleMenu(event, 'menu-${newId}')">⋮</button>
+                        <div id="menu-${newId}" class="dropdown-menu">
+                            <a href="#" onclick="openEditModal(${newId})">تعديل</a>
+                            <a href="#">تفاصيل الوقف</a>
+                            <a href="#">عقود الإيجار</a>
+                            <a href="#" class="delete-item">حذف</a>
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            tbody.appendChild(newRow);
+            document.getElementById('paginationText').innerText = `عرض 1 إلى ${newId} من ${newId} مدخلات`;
+
+            closeAddModal();
+            document.getElementById('alertMessage').innerText = "Property added successfully";
             document.getElementById('successAlert').style.display = 'flex';
         }
 
