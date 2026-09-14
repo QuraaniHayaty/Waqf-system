@@ -52,7 +52,7 @@
         .dropdown-menu a.delete-item { color: #c0392b; }
         .dropdown-menu a.delete-item:hover { background-color: #fde8e8; }
         
-        /* تنسيق النافذة المنبثقة Modal مطابقة لقرآني حياتي */
+        /* النافذة المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: white; width: 550px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
@@ -125,16 +125,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <tr id="row-1">
                         <td>1</td>
-                        <td>عمارة الروضة التجارية</td>
-                        <td>قرية الروضة - الشارع العام</td>
-                        <td>12 وحدة</td>
+                        <td class="prop-name">عمارة الروضة التجارية</td>
+                        <td class="prop-location">قرية الروضة - الشارع العام</td>
+                        <td class="prop-units">12 وحدة</td>
                         <td>
                             <div class="action-dropdown">
                                 <button class="action-btn" onclick="toggleMenu(event, 'menu-1')">⋮</button>
                                 <div id="menu-1" class="dropdown-menu">
-                                    <a href="#" onclick="openEditModal('عمارة الروضة التجارية', 'قرية الروضة - الشارع العام', '12 وحدة')">تعديل</a>
+                                    <a href="#" onclick="openEditModal(1)">تعديل</a>
                                     <a href="#">تفاصيل الوقف</a>
                                     <a href="#">عقود الإيجار</a>
                                     <a href="#" class="delete-item">حذف</a>
@@ -142,16 +142,16 @@
                             </div>
                         </td>
                     </tr>
-                    <tr>
+                    <tr id="row-2">
                         <td>2</td>
-                        <td>مجمع النور السكني</td>
-                        <td>حي المدارس</td>
-                        <td>8 وحدات</td>
+                        <td class="prop-name">مجمع النور السكني</td>
+                        <td class="prop-location">حي المدارس</td>
+                        <td class="prop-units">8 وحدات</td>
                         <td>
                             <div class="action-dropdown">
                                 <button class="action-btn" onclick="toggleMenu(event, 'menu-2')">⋮</button>
                                 <div id="menu-2" class="dropdown-menu">
-                                    <a href="#" onclick="openEditModal('مجمع النور السكني', 'حي المدارس', '8 وحدات')">تعديل</a>
+                                    <a href="#" onclick="openEditModal(2)">تعديل</a>
                                     <a href="#">تفاصيل الوقف</a>
                                     <a href="#">عقود الإيجار</a>
                                     <a href="#" class="delete-item">حذف</a>
@@ -170,7 +170,7 @@
         </div>
     </main>
 
-    <!-- نافذة التعديل المنبثقة (Modal) -->
+    <!-- نافذة التعديل المنبثقة -->
     <div id="editModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -178,6 +178,7 @@
                 <button class="close-modal" onclick="closeEditModal()">&times;</button>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="editPropId">
                 <div class="form-group">
                     <label>اسم الوقف</label>
                     <input type="text" id="editPropName">
@@ -192,7 +193,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-save" onclick="closeEditModal()">حفظ التغييرات</button>
+                <button class="btn-save" onclick="saveChanges()">حفظ التغييرات</button>
             </div>
         </div>
     </div>
@@ -213,15 +214,33 @@
             });
         }
 
-        function openEditModal(name, location, units) {
+        function openEditModal(id) {
+            let row = document.getElementById('row-' + id);
+            let name = row.querySelector('.prop-name').innerText;
+            let location = row.querySelector('.prop-location').innerText;
+            let units = row.querySelector('.prop-units').innerText;
+
+            document.getElementById('editPropId').value = id;
             document.getElementById('editPropName').value = name;
             document.getElementById('editPropLocation').value = location;
             document.getElementById('editPropUnits').value = units;
+            
             document.getElementById('editModal').style.display = 'flex';
         }
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
+        }
+
+        function saveChanges() {
+            let id = document.getElementById('editPropId').value;
+            let row = document.getElementById('row-' + id);
+
+            row.querySelector('.prop-name').innerText = document.getElementById('editPropName').value;
+            row.querySelector('.prop-location').innerText = document.getElementById('editPropLocation').value;
+            row.querySelector('.prop-units').innerText = document.getElementById('editPropUnits').value;
+
+            closeEditModal();
         }
     </script>
 </body>
