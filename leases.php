@@ -42,7 +42,7 @@
         th { background-color: #f8f9fa; color: #2e5a36; font-weight: 600; }
         tr:hover { background-color: #fcfcfc; }
         
-        /* النافذة المنبثقة لإضافة عقد إيجار */
+        /* النافذة المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: white; width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
@@ -109,7 +109,7 @@
                     <tr>
                         <th>المعرف</th>
                         <th>اسم العقار</th>
-                        <th>الوحدة المؤجرة</th>
+                        <th>الطابق والوحدة</th>
                         <th>المستأجر</th>
                         <th>القيمة الإيجارية</th>
                         <th>عقد الإيجار (Attach)</th>
@@ -120,13 +120,13 @@
                     <tr>
                         <td>1</td>
                         <td>عمارة الروضة التجارية</td>
-                        <td>الطابق الأرضي - محل رقم 1</td>
+                        <td>الطابق الأرضي (محل رقم 1)</td>
                         <td>شركة الأفق للتجارة</td>
                         <td>50 ر.ع</td>
                         <td>
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد_محل_1.pdf</a>
-                                <button onclick="printFile('#')" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
+                                <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
                                 <button onclick="this.closest('tr').remove()" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="حذف العقد">🗑️</button>
                             </div>
                         </td>
@@ -143,7 +143,7 @@
         </div>
     </main>
 
-    <!-- نافذة إضافة عقد إيجار -->
+    <!-- نافذة إضافة عقد إيجار بقوائم منسدلة مترابطة -->
     <div id="addLeaseModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -153,14 +153,22 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>اختر العقار</label>
-                    <select id="leaseProp">
+                    <select id="leasePropSelect" onchange="loadFloatsForProperty()">
+                        <option value="" disabled selected>اختر العقار</option>
                         <option value="عمارة الروضة التجارية">عمارة الروضة التجارية</option>
-                        <option value="سوق الروضة">سوق الروضة</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>الوحدة المستهدفة (الطابق والرقم)</label>
-                    <input type="text" id="leaseUnit" placeholder="مثال: الطابق الأرضي - محل رقم 2">
+                    <label>اختر الطابق</label>
+                    <select id="leaseFloorSelect" onchange="loadUnitsForFloor()">
+                        <option value="" disabled selected>اختر الطابق أولاً</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اختر الوحدة</label>
+                    <select id="leaseUnitSelect">
+                        <option value="" disabled selected>اختر الوحدة أولاً</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>اسم المستأجر</label>
@@ -182,8 +190,18 @@
     </div>
 
     <script>
+        /* بيانات وهمية تحاكي الطوابق والوحدات المسجلة في العقارات */
+        const samplePropertyData = {
+            "عمارة الروضة التجارية": [
+                { floor: "الطابق الأرضي", units: ["محل رقم 1", "محل رقم 2"] },
+                { floor: "الطابق الأول", units: ["شقة رقم 101", "شقة رقم 102"] }
+            ]
+        };
+
         function openAddLeaseModal() {
-            document.getElementById('leaseUnit').value = '';
+            document.getElementById('leasePropSelect').value = "";
+            document.getElementById('leaseFloorSelect').innerHTML = '<option value="" disabled selected>اختر العقار أولاً</option>';
+            document.getElementById('leaseUnitSelect').innerHTML = '<option value="" disabled selected>اختر الطابق أولاً</option>';
             document.getElementById('leaseTenant').value = '';
             document.getElementById('leaseAmount').value = '';
             document.getElementById('leaseFile').value = '';
@@ -194,15 +212,53 @@
             document.getElementById('addLeaseModal').style.display = 'none';
         }
 
+        function loadFloatsForProperty() {
+            let prop = document.getElementById('leasePropSelect').value;
+            let floorSelect = document.getElementById('leaseFloorSelect');
+            floorSelect.innerHTML = '<option value="" disabled selected>اختر الطابق</option>';
+            
+            let unitSelect = document.getElementById('leaseUnitSelect');
+            unitSelect.innerHTML = '<option value="" disabled selected>اختر الطابق أولاً</option>';
+
+            if(samplePropertyData[prop]) {
+                samplePropertyData[prop].forEach(f => {
+                    let opt = document.createElement('option');
+                    opt.value = f.floor;
+                    opt.innerText = f.floor;
+                    floorSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function loadUnitsForFloor() {
+            let prop = document.getElementById('leasePropSelect').value;
+            let floor = document.getElementById('leaseFloorSelect').value;
+            let unitSelect = document.getElementById('leaseUnitSelect');
+            unitSelect.innerHTML = '<option value="" disabled selected>اختر الوحدة</option>';
+
+            if(samplePropertyData[prop]) {
+                let foundFloor = samplePropertyData[prop].find(f => f.floor === floor);
+                if(foundFloor && foundFloor.units) {
+                    foundFloor.units.forEach(u => {
+                        let opt = document.createElement('option');
+                        opt.value = u;
+                        opt.innerText = u;
+                        unitSelect.appendChild(opt);
+                    });
+                }
+            }
+        }
+
         function saveNewLease() {
-            let prop = document.getElementById('leaseProp').value;
-            let unit = document.getElementById('leaseUnit').value;
+            let prop = document.getElementById('leasePropSelect').value;
+            let floor = document.getElementById('leaseFloorSelect').value;
+            let unit = document.getElementById('leaseUnitSelect').value;
             let tenant = document.getElementById('leaseTenant').value;
             let amount = document.getElementById('leaseAmount').value;
             let fileInput = document.getElementById('leaseFile');
 
-            if(!unit || !tenant || !amount) {
-                alert('الرجاء تعبئة جميع الحقول الأساسية');
+            if(!prop || !floor || !unit || !tenant || !amount) {
+                alert('الرجاء اختيار العقار، الطابق، الوحدة، وتعبئة باقي الحقول');
                 return;
             }
 
@@ -214,13 +270,13 @@
             newRow.innerHTML = `
                 <td>${rowCount}</td>
                 <td>${prop}</td>
-                <td>${unit}</td>
+                <td>${floor} (${unit})</td>
                 <td>${tenant}</td>
                 <td>${amount} ر.ع</td>
                 <td>
                     <div style="display:flex; gap:5px; align-items:center;">
                         <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 ${fileName}</a>
-                        <button onclick="printFile('#')" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
+                        <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
                         <button onclick="this.closest('tr').remove()" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="حذف العقد">🗑️</button>
                     </div>
                 </td>
@@ -230,10 +286,6 @@
             tbody.appendChild(newRow);
             closeAddLeaseModal();
             alert('تمت إضافة عقد الإيجار بنجاح!');
-        }
-
-        function printFile(url) {
-            window.print();
         }
     </script>
 </body>
