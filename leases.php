@@ -29,10 +29,13 @@
         .banner-title h1 { font-size: 24px; margin-bottom: 5px; font-weight: bold; }
         .banner-title p { font-size: 14px; opacity: 0.9; }
         
-        .action-bar { padding: 0 25px; margin-bottom: 20px; display: flex; justify-content: flex-start; }
+        .action-bar { padding: 0 25px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .btn-add { background-color: #27ae60; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; transition: background 0.2s; cursor: pointer; border: none; }
         .btn-add:hover { background-color: #219653; }
         
+        .btn-archive-view { background-color: #e67e22; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; cursor: pointer; border: none; }
+        .btn-archive-view:hover { background-color: #d35400; }
+
         .content-card { background: white; margin: 0 25px 25px 25px; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .search-box { margin-bottom: 15px; }
         .search-box input { width: 250px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
@@ -42,6 +45,11 @@
         th { background-color: #f8f9fa; color: #2e5a36; font-weight: 600; }
         tr:hover { background-color: #fcfcfc; }
         
+        /* أزرار الإجراءات داخل الجدول */
+        .btn-action-edit { background: #eef2f5; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #333; }
+        .btn-action-archive { background: #fef3c7; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #d97706; }
+        .btn-action-delete { background: #fee2e2; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #dc2626; }
+
         /* النوافذ المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: white; width: 650px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
@@ -54,7 +62,6 @@
         .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; text-align: right; font-weight: bold; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; background: #fff; }
         
-        /* إرفاق عدة ملفات */
         .attachment-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
         .btn-add-attachment { background-color: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn-add-attachment:hover { background-color: #2980b9; }
@@ -105,6 +112,7 @@
 
         <div class="action-bar">
             <button class="btn-add" onclick="openAddLeaseModal()">➕ إضافة عقد إيجار</button>
+            <button class="btn-archive-view" onclick="openArchiveModal()">📁 أرشيف العقود المنتهية</button>
         </div>
 
         <div class="content-card">
@@ -138,7 +146,13 @@
                                 </div>
                             </div>
                         </td>
-                        <td><button onclick="openEditLeaseModal(1)" style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">تعديل</button></td>
+                        <td>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <button onclick="openEditLeaseModal(1)" class="btn-action-edit">تعديل</button>
+                                <button onclick="archiveLease(1)" class="btn-action-archive">أرشيف</button>
+                                <button onclick="deleteLease(1)" class="btn-action-delete">حذف</button>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -253,6 +267,35 @@
         </div>
     </div>
 
+    <!-- نافذة أرشيف العقود -->
+    <div id="archiveModal" class="modal-overlay">
+        <div class="modal-box" style="width: 800px;">
+            <div class="modal-header">
+                <h3>أرشيف عقود الإيجار المنتهية</h3>
+                <button class="close-modal" onclick="closeArchiveModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th>اسم العقار</th>
+                            <th>الطابق والوحدة</th>
+                            <th>المستأجر</th>
+                            <th>القيمة</th>
+                            <th>المرفقات المؤرشفة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="archiveTableBody">
+                        <tr><td colspan="5" style="text-align: center; color: #777;">لا توجد عقود مؤرشفة حالياً.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-save" onclick="closeArchiveModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const samplePropertyData = {
             "عمارة الروضة التجارية": [
@@ -260,6 +303,8 @@
                 { floor: "الطابق الأول", units: ["شقة رقم 101", "شقة رقم 102"] }
             ]
         };
+
+        let archiveData = [];
 
         function addAttachmentRow(containerId, fileObj = null) {
             let container = document.getElementById(containerId);
@@ -284,6 +329,69 @@
             } else {
                 alert('هذا ملف افتراضي تجريبي. قم برفع واستعراض ملف حقيقي.');
             }
+        }
+
+        /* دالة حذف العقد نهائياً */
+        function deleteLease(id) {
+            if(confirm('هل أنت متأكد من حذف هذا العقد نهائياً؟')) {
+                let row = document.getElementById('lease-row-' + id);
+                if(row) row.remove();
+                alert('تم حذف العقد بنجاح.');
+            }
+        }
+
+        /* دالة أرشفة العقد */
+        function archiveLease(id) {
+            if(confirm('هل تريد أرشفة هذا العقد (نقله إلى الأرشيف)؟')) {
+                let row = document.getElementById('lease-row-' + id);
+                if(row) {
+                    let prop = row.getAttribute('data-prop');
+                    let floor = row.getAttribute('data-floor');
+                    let unit = row.getAttribute('data-unit');
+                    let tenant = row.getAttribute('data-tenant');
+                    let amount = row.getAttribute('data-amount');
+                    let files = JSON.parse(row.getAttribute('data-files') || '[]');
+
+                    archiveData.push({ prop, floor, unit, tenant, amount, files });
+                    row.remove();
+                    updateArchiveTable();
+                    alert('تم نقل العقد إلى الأرشيف بنجاح.');
+                }
+            }
+        }
+
+        function updateArchiveTable() {
+            let tbody = document.getElementById('archiveTableBody');
+            if(archiveData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #777;">لا توجد عقود مؤرشفة حالياً.</td></tr>';
+                return;
+            }
+            let html = '';
+            archiveData.forEach(item => {
+                let filesHtml = '';
+                item.files.forEach(f => {
+                    filesHtml += `<a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; display:block;">📄 ${f.name}</a>`;
+                });
+                if(!filesHtml) filesHtml = 'لا توجد مرفقات';
+
+                html += `<tr>
+                    <td>${item.prop}</td>
+                    <td>${item.floor} (${item.unit})</td>
+                    <td>${item.tenant}</td>
+                    <td>${item.amount} ر.ع</td>
+                    <td>${filesHtml}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function openArchiveModal() {
+            updateArchiveTable();
+            document.getElementById('archiveModal').style.display = 'flex';
+        }
+
+        function closeArchiveModal() {
+            document.getElementById('archiveModal').style.display = 'none';
         }
 
         function openAddLeaseModal() {
@@ -530,12 +638,18 @@
                     <td class="col-tenant">${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
                     <td class="col-amount">${amount} ر.ع</td>
                     <td class="col-files">${filesHtml}</td>
-                    <td><button onclick="openEditLeaseModal(${rowCount})" style="background:#eef2f5; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">تعديل</button></td>
+                    <td>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <button onclick="openEditLeaseModal(${rowCount})" class="btn-action-edit">تعديل</button>
+                            <button onclick="archiveLease(${rowCount})" class="btn-action-archive">أرشيف</button>
+                            <button onclick="deleteLease(${rowCount})" class="btn-action-delete">حذف</button>
+                        </div>
+                    </td>
                 `;
 
                 tbody.appendChild(newRow);
                 closeAddLeaseModal();
-                alert('تمت إضافة عقد الإيجار والمرفقات بنجاح!');
+                alert('تمت إضافة عقد الإيجار بنجاح!');
             }
         }
     </script>
