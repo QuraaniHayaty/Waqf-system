@@ -6,7 +6,6 @@ $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
 try {
-    // جلب جميع العقود النشطة
     if ($method == 'GET' && $action == 'getAll') {
         $stmt = $pdo->query("SELECT * FROM leases ORDER BY created_at DESC");
         $leases = $stmt->fetchAll();
@@ -15,35 +14,28 @@ try {
         }
         echo json_encode($leases);
     }
-    
-    // إضافة عقد إيجار جديد
     elseif ($method == 'POST' && $action == 'add') {
         $data = json_decode(file_get_contents("php://input"), true);
         
         $stmt = $pdo->prepare("INSERT INTO leases (prop, floor, unit, tenant, phone, amount, start_date, end_date, files_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
-            $data['prop'],
-            $data['floor'],
-            $data['unit'],
-            $data['tenant'],
-            $data['phone'],
-            $data['amount'],
-            $data['start_date'],
-            $data['end_date'],
+            $data['prop'] ?? '',
+            $data['floor'] ?? '',
+            $data['unit'] ?? '',
+            $data['tenant'] ?? '',
+            $data['phone'] ?? '',
+            $data['amount'] ?? 0,
+            $data['start_date'] ?? date('Y-m-d'),
+            $data['end_date'] ?? date('Y-m-d'),
             json_encode($data['files'] ?? [])
         ]);
         
         echo json_encode(["status" => "success", "id" => $pdo->lastInsertId()]);
     }
-    
-    // حذف عقد أو أرشفته
     elseif ($method == 'POST' && $action == 'delete') {
         $data = json_decode(file_get_contents("php://input"), true);
-        $id = $data['id'];
-        
         $stmt = $pdo->prepare("DELETE FROM leases WHERE id = ?");
-        $stmt->execute([$id]);
-        
+        $stmt->execute([$data['id']]);
         echo json_encode(["status" => "success"]);
     }
 } catch (Exception $e) {
