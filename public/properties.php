@@ -52,17 +52,28 @@
         .dropdown-menu a.delete-item { color: #c0392b; }
         .dropdown-menu a.delete-item:hover { background-color: #fde8e8; }
         
-        /* النوافذ المنبثقة (Modals) */
+        /* النوافذ المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: white; width: 550px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; }
+        .modal-box { background: white; width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
         .modal-header h3 { font-size: 16px; color: #333; font-weight: bold; }
         .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
         .close-modal:hover { color: #333; }
-        .modal-body { padding: 20px; }
+        .modal-body { padding: 20px; overflow-y: auto; flex-grow: 1; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; text-align: left; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; }
+        .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; text-align: right; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; background: #fff; }
+        
+        /* تصميم قسم الوحدات وعلامة الزائد (+) */
+        .units-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-top: 1px dashed #ddd; padding-top: 15px; }
+        .units-section-header h4 { font-size: 14px; color: #2e5a36; font-weight: bold; }
+        .btn-add-unit { background-color: #27ae60; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: background 0.2s; }
+        .btn-add-unit:hover { background-color: #219653; }
+        
+        .unit-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 6px; }
+        .unit-row select, .unit-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        .btn-remove-unit { background: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        
         .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-start; background: #fafafa; }
         .btn-save { background-color: #27ae60; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
         .btn-save:hover { background-color: #219653; }
@@ -123,7 +134,7 @@
             <div class="search-box">
                 <input type="text" placeholder="بحث...">
             </div>
-            <table id="propertiesTable">
+            <table>
                 <thead>
                     <tr>
                         <th>المعرف</th>
@@ -134,7 +145,7 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr id="row-1">
+                    <tr id="row-1" data-units='[{"type":"محل","count":"10","nums":"1 إلى 10"},{"type":"مخزن","count":"2","nums":"م1, م2"}]'>
                         <td>1</td>
                         <td class="prop-name">عمارة الروضة التجارية</td>
                         <td class="prop-location">قرية الروضة - الشارع العام</td>
@@ -144,14 +155,14 @@
                                 <button class="action-btn" onclick="toggleMenu(event, 'menu-1')">⋮</button>
                                 <div id="menu-1" class="dropdown-menu">
                                     <a href="#" onclick="openEditModal(1)">تعديل</a>
-                                    <a href="#">تفاصيل الوقف</a>
+                                    <a href="#" onclick="openUnitsModal(1)">وحدات الوقف</a>
                                     <a href="#">عقود الإيجار</a>
                                     <a href="#" class="delete-item">حذف</a>
                                 </div>
                             </div>
                         </td>
                     </tr>
-                    <tr id="row-2">
+                    <tr id="row-2" data-units='[{"type":"شقة","count":"8","nums":"ش1 إلى ش8"}]'>
                         <td>2</td>
                         <td class="prop-name">مجمع النور السكني</td>
                         <td class="prop-location">حي المدارس</td>
@@ -161,7 +172,7 @@
                                 <button class="action-btn" onclick="toggleMenu(event, 'menu-2')">⋮</button>
                                 <div id="menu-2" class="dropdown-menu">
                                     <a href="#" onclick="openEditModal(2)">تعديل</a>
-                                    <a href="#">تفاصيل الوقف</a>
+                                    <a href="#" onclick="openUnitsModal(2)">وحدات الوقف</a>
                                     <a href="#">عقود الإيجار</a>
                                     <a href="#" class="delete-item">حذف</a>
                                 </div>
@@ -179,7 +190,7 @@
         </div>
     </main>
 
-    <!-- نافذة التعديل المنبثقة -->
+    <!-- نافذة تعديل العقار -->
     <div id="editModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -197,9 +208,15 @@
                     <input type="text" id="editPropLocation">
                 </div>
                 <div class="form-group">
-                    <label>عدد الوحدات</label>
+                    <label>عدد الوحدات الإجمالي</label>
                     <input type="text" id="editPropUnits">
                 </div>
+                
+                <div class="units-section-header">
+                    <h4>تفاصيل وحدات الوقف</h4>
+                    <button type="button" class="btn-add-unit" onclick="addUnitRow('edit-units-container')">+</button>
+                </div>
+                <div id="edit-units-container"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn-save" onclick="saveEditChanges()">حفظ التغييرات</button>
@@ -207,7 +224,7 @@
         </div>
     </div>
 
-    <!-- نافذة إضافة عقار المنبثقة -->
+    <!-- نافذة إضافة عقار -->
     <div id="addModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -224,12 +241,34 @@
                     <input type="text" id="addPropLocation" placeholder="أدخل مكان الوقف">
                 </div>
                 <div class="form-group">
-                    <label>عدد الوحدات</label>
-                    <input type="text" id="addPropUnits" placeholder="أدخل عدد الوحدات">
+                    <label>عدد الوحدات الإجمالي</label>
+                    <input type="text" id="addPropUnits" placeholder="أدخل العدد الإجمالي للوحدات">
                 </div>
+
+                <div class="units-section-header">
+                    <h4>تفاصيل وحدات الوقف</h4>
+                    <button type="button" class="btn-add-unit" onclick="addUnitRow('add-units-container')">+</button>
+                </div>
+                <div id="add-units-container"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn-save" onclick="saveNewProperty()">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة عرض وحدات الوقف الخاصة بالعقار -->
+    <div id="unitsModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="unitsModalTitle">وحدات الوقف</h3>
+                <button class="close-modal" onclick="closeUnitsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="unitsDetailsContent" style="font-size: 14px; line-height: 1.6; color: #333;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-save" onclick="closeUnitsModal()">إغلاق</button>
             </div>
         </div>
     </div>
@@ -262,17 +301,72 @@
             });
         }
 
+        /* إدارة صفوف الوحدات (إضافة نوع الوحدة، العدد، وأرقامها) */
+        function addUnitRow(containerId, type = 'محل', count = '', nums = '') {
+            let container = document.getElementById(containerId);
+            let row = document.createElement('div');
+            row.className = 'unit-row';
+            row.innerHTML = `
+                <select class="unit-type">
+                    <option value="محل" ${type==='محل'?'selected':''}>محل</option>
+                    <option value="شقة" ${type==='شقة'?'selected':''}>شقة</option>
+                    <option value="مخزن" ${type==='مخزن'?'selected':''}>مخزن</option>
+                    <option value="منزل" ${type==='منزل'?'selected':''}>منزل</option>
+                </select>
+                <input type="number" class="unit-count" placeholder="العدد" value="${count}">
+                <input type="text" class="unit-nums" placeholder="أرقام الوحدات (مثال: 1-10)" value="${nums}">
+                <button type="button" class="btn-remove-unit" onclick="this.parentElement.remove()">حذف</button>
+            `;
+            container.appendChild(row);
+        }
+
+        /* فتح نافذة عرض وحدات الوقف */
+        function openUnitsModal(id) {
+            let row = document.getElementById('row-' + id);
+            let propName = row.querySelector('.prop-name').innerText;
+            let unitsData = JSON.parse(row.getAttribute('data-units') || '[]');
+
+            document.getElementById('unitsModalTitle').innerText = 'وحدات الوقف: ' + propName;
+            let contentDiv = document.getElementById('unitsDetailsContent');
+            
+            if(unitsData.length === 0) {
+                contentDiv.innerHTML = '<p style="color: #7f8c8d; text-align: center;">لا توجد وحدات مضافة لهذا العقار.</p>';
+            } else {
+                let html = '<ul style="list-style: none; padding: 0;">';
+                unitsData.forEach(u => {
+                    html += `<li style="background: #f8f9fa; margin-bottom: 8px; padding: 10px 15px; border-radius: 6px; border-right: 4px solid #27ae60;">
+                        <strong>نوع الوحدة:</strong> ${u.type} | <strong>العدد:</strong> ${u.count} | <strong>الأرقام:</strong> ${u.nums}
+                    </li>`;
+                });
+                html += '</ul>';
+                contentDiv.innerHTML = html;
+            }
+
+            document.getElementById('unitsModal').style.display = 'flex';
+        }
+
+        function closeUnitsModal() {
+            document.getElementById('unitsModal').style.display = 'none';
+        }
+
         function openEditModal(id) {
             let row = document.getElementById('row-' + id);
             let name = row.querySelector('.prop-name').innerText;
             let location = row.querySelector('.prop-location').innerText;
             let units = row.querySelector('.prop-units').innerText;
+            let unitsData = JSON.parse(row.getAttribute('data-units') || '[]');
 
             document.getElementById('editPropId').value = id;
             document.getElementById('editPropName').value = name;
             document.getElementById('editPropLocation').value = location;
             document.getElementById('editPropUnits').value = units;
             
+            let container = document.getElementById('edit-units-container');
+            container.innerHTML = '';
+            unitsData.forEach(u => {
+                addUnitRow('edit-units-container', u.type, u.count, u.nums);
+            });
+
             document.getElementById('editModal').style.display = 'flex';
         }
 
@@ -284,9 +378,24 @@
             let id = document.getElementById('editPropId').value;
             let row = document.getElementById('row-' + id);
 
-            row.querySelector('.prop-name').innerText = document.getElementById('editPropName').value;
-            row.querySelector('.prop-location').innerText = document.getElementById('editPropLocation').value;
-            row.querySelector('.prop-units').innerText = document.getElementById('editPropUnits').value;
+            let name = document.getElementById('editPropName').value;
+            let location = document.getElementById('editPropLocation').value;
+            let totalUnits = document.getElementById('editPropUnits').value;
+
+            // جمع بيانات الوحدات المدخلة
+            let unitsArr = [];
+            document.querySelectorAll('#edit-units-container .unit-row').forEach(r => {
+                unitsArr.push({
+                    type: r.querySelector('.unit-type').value,
+                    count: r.querySelector('.unit-count').value,
+                    nums: r.querySelector('.unit-nums').value
+                });
+            });
+
+            row.querySelector('.prop-name').innerText = name;
+            row.querySelector('.prop-location').innerText = location;
+            row.querySelector('.prop-units').innerText = totalUnits;
+            row.setAttribute('data-units', JSON.stringify(unitsArr));
 
             closeEditModal();
             document.getElementById('alertMessage').innerText = "Property updated successfully";
@@ -297,6 +406,9 @@
             document.getElementById('addPropName').value = '';
             document.getElementById('addPropLocation').value = '';
             document.getElementById('addPropUnits').value = '';
+            document.getElementById('add-units-container').innerHTML = '';
+            // إضافة صف افتراضي أولي للمساعدة
+            addUnitRow('add-units-container', 'محل', '', '');
             document.getElementById('addModal').style.display = 'flex';
         }
 
@@ -307,12 +419,21 @@
         function saveNewProperty() {
             let name = document.getElementById('addPropName').value;
             let location = document.getElementById('addPropLocation').value;
-            let units = document.getElementById('addPropUnits').value;
+            let totalUnits = document.getElementById('addPropUnits').value;
 
-            if(!name || !location || !units) {
-                alert('الرجاء تعبئة جميع الحقول');
+            if(!name || !location) {
+                alert('الرجاء تعبئة اسم الوقف ومكانه');
                 return;
             }
+
+            let unitsArr = [];
+            document.querySelectorAll('#add-units-container .unit-row').forEach(r => {
+                unitsArr.push({
+                    type: r.querySelector('.unit-type').value,
+                    count: r.querySelector('.unit-count').value,
+                    nums: r.querySelector('.unit-nums').value
+                });
+            });
 
             propertyCount++;
             let newId = propertyCount;
@@ -320,17 +441,18 @@
 
             let newRow = document.createElement('tr');
             newRow.id = 'row-' + newId;
+            newRow.setAttribute('data-units', JSON.stringify(unitsArr));
             newRow.innerHTML = `
                 <td>${newId}</td>
                 <td class="prop-name">${name}</td>
                 <td class="prop-location">${location}</td>
-                <td class="prop-units">${units}</td>
+                <td class="prop-units">${totalUnits}</td>
                 <td>
                     <div class="action-dropdown">
                         <button class="action-btn" onclick="toggleMenu(event, 'menu-${newId}')">⋮</button>
                         <div id="menu-${newId}" class="dropdown-menu">
                             <a href="#" onclick="openEditModal(${newId})">تعديل</a>
-                            <a href="#">تفاصيل الوقف</a>
+                            <a href="#" onclick="openUnitsModal(${newId})">وحدات الوقف</a>
                             <a href="#">عقود الإيجار</a>
                             <a href="#" class="delete-item">حذف</a>
                         </div>
