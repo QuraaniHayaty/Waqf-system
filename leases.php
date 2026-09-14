@@ -49,10 +49,11 @@
         .btn-action-edit { background: #eef2f5; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #333; }
         .btn-action-archive { background: #fef3c7; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #d97706; }
         .btn-action-delete { background: #fee2e2; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #dc2626; }
+        .btn-action-restore { background: #dcfce7; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; color: #166534; }
 
         /* النوافذ المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: white; width: 650px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-box { background: white; width: 850px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
         .modal-header h3 { font-size: 16px; color: #333; font-weight: bold; }
         .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
@@ -67,7 +68,7 @@
         .btn-add-attachment:hover { background-color: #2980b9; }
         .btn-remove-att { background: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
-        .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-start; background: #fafafa; }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
         .btn-save { background-color: #27ae60; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
         .btn-save:hover { background-color: #219653; }
 
@@ -267,14 +268,17 @@
         </div>
     </div>
 
-    <!-- نافذة أرشيف العقود -->
+    <!-- نافذة أرشيف العقود المنتهية بتصميم متطور مع بحث وتصفح وترقيم -->
     <div id="archiveModal" class="modal-overlay">
-        <div class="modal-box" style="width: 800px;">
+        <div class="modal-box" style="width: 900px;">
             <div class="modal-header">
                 <h3>أرشيف عقود الإيجار المنتهية</h3>
                 <button class="close-modal" onclick="closeArchiveModal()">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="search-box" style="margin-bottom: 15px;">
+                    <input type="text" id="archiveSearchInput" placeholder="بحث في الأرشيف..." oninput="filterArchive()" style="width: 280px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
                 <table style="width: 100%;">
                     <thead>
                         <tr style="background: #f8f9fa;">
@@ -282,15 +286,17 @@
                             <th>الطابق والوحدة</th>
                             <th>المستأجر</th>
                             <th>القيمة</th>
-                            <th>المرفقات المؤرشفة</th>
+                            <th>المرفقات</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="archiveTableBody">
-                        <tr><td colspan="5" style="text-align: center; color: #777;">لا توجد عقود مؤرشفة حالياً.</td></tr>
                     </tbody>
                 </table>
             </div>
             <div class="modal-footer">
+                <span id="archivePaginationText" style="font-size: 13px; color: #666;">عرض 0 من 0</span>
+                <div class="pagination" id="archivePaginationButtons" style="margin: 0;"></div>
                 <button class="btn-save" onclick="closeArchiveModal()">إغلاق</button>
             </div>
         </div>
@@ -305,6 +311,8 @@
         };
 
         let archiveData = [];
+        let archiveCurrentPage = 1;
+        const archiveRowsPerPage = 10;
 
         function addAttachmentRow(containerId, fileObj = null) {
             let container = document.getElementById(containerId);
@@ -331,7 +339,6 @@
             }
         }
 
-        /* دالة حذف العقد نهائياً */
         function deleteLease(id) {
             if(confirm('هل أنت متأكد من حذف هذا العقد نهائياً؟')) {
                 let row = document.getElementById('lease-row-' + id);
@@ -340,7 +347,6 @@
             }
         }
 
-        /* دالة أرشفة العقد */
         function archiveLease(id) {
             if(confirm('هل تريد أرشفة هذا العقد (نقله إلى الأرشيف)؟')) {
                 let row = document.getElementById('lease-row-' + id);
@@ -349,10 +355,11 @@
                     let floor = row.getAttribute('data-floor');
                     let unit = row.getAttribute('data-unit');
                     let tenant = row.getAttribute('data-tenant');
+                    let phone = row.getAttribute('data-phone');
                     let amount = row.getAttribute('data-amount');
                     let files = JSON.parse(row.getAttribute('data-files') || '[]');
 
-                    archiveData.push({ prop, floor, unit, tenant, amount, files });
+                    archiveData.push({ id, prop, floor, unit, tenant, phone, amount, files });
                     row.remove();
                     updateArchiveTable();
                     alert('تم نقل العقد إلى الأرشيف بنجاح.');
@@ -360,32 +367,135 @@
             }
         }
 
+        /* استعادة العقد من الأرشيف إلى الجدول الرئيسي */
+        function restoreLease(index) {
+            if(confirm('هل تريد استعادة هذا العقد وإعادته إلى قائمة عقود الإيجار النشطة؟')) {
+                let item = archiveData.splice(index, 1)[0];
+                
+                let tbody = document.getElementById('leasesTableBody');
+                let rowCount = tbody.rows.length + 1;
+
+                let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
+                if(item.files.length === 0) {
+                    filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
+                } else {
+                    item.files.forEach(f => {
+                        filesHtml += `
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:13px; cursor:pointer;">📄 ${f.name}</a>
+                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:10px;" title="معاينة وطباعة">🖨️</button>
+                            </div>
+                        `;
+                    });
+                }
+                filesHtml += '</div>';
+
+                let newRow = document.createElement('tr');
+                newRow.id = 'lease-row-' + rowCount;
+                newRow.setAttribute('data-prop', item.prop);
+                newRow.setAttribute('data-floor', item.floor);
+                newRow.setAttribute('data-unit', item.unit);
+                newRow.setAttribute('data-tenant', item.tenant);
+                newRow.setAttribute('data-phone', item.phone);
+                newRow.setAttribute('data-amount', item.amount);
+                newRow.setAttribute('data-files', JSON.stringify(item.files));
+
+                newRow.innerHTML = `
+                    <td>${rowCount}</td>
+                    <td class="col-prop">${item.prop}</td>
+                    <td class="col-unit">${item.floor} (${item.unit})</td>
+                    <td class="col-tenant">${item.tenant}<br><small style="color:#777;">📞 ${item.phone || '-'}</small></td>
+                    <td class="col-amount">${item.amount} ر.ع</td>
+                    <td class="col-files">${filesHtml}</td>
+                    <td>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <button onclick="openEditLeaseModal(${rowCount})" class="btn-action-edit">تعديل</button>
+                            <button onclick="archiveLease(${rowCount})" class="btn-action-archive">أرشيف</button>
+                            <button onclick="deleteLease(${rowCount})" class="btn-action-delete">حذف</button>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(newRow);
+                updateArchiveTable();
+                alert('تمت استعادة العقد بنجاح.');
+            }
+        }
+
+        /* حذف نهائي من الأرشيف */
+        function deleteFromArchive(index) {
+            if(confirm('هل أنت متأكد من حذف هذا العقد نهائياً من الأرشيف؟')) {
+                archiveData.splice(index, 1);
+                updateArchiveTable();
+                alert('تم حذف العقد نهائياً.');
+            }
+        }
+
+        function filterArchive() {
+            archiveCurrentPage = 1;
+            updateArchiveTable();
+        }
+
         function updateArchiveTable() {
+            let searchText = document.getElementById('archiveSearchInput').value.toLowerCase();
+            let filtered = archiveData.filter(item => {
+                return item.prop.toLowerCase().includes(searchText) ||
+                       item.tenant.toLowerCase().includes(searchText) ||
+                       item.unit.toLowerCase().includes(searchText) ||
+                       item.floor.toLowerCase().includes(searchText);
+            });
+
+            let totalPages = Math.ceil(filtered.length / archiveRowsPerPage) || 1;
+            if (archiveCurrentPage > totalPages) archiveCurrentPage = totalPages;
+
+            let start = (archiveCurrentPage - 1) * archiveRowsPerPage;
+            let paginatedItems = filtered.slice(start, start + archiveRowsPerPage);
+
             let tbody = document.getElementById('archiveTableBody');
-            if(archiveData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #777;">لا توجد عقود مؤرشفة حالياً.</td></tr>';
+            if(filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #777; padding: 20px;">لا توجد عقود مؤرشفة مطابقة للبحث.</td></tr>';
+                document.getElementById('archivePaginationText').innerText = 'عرض 0 من 0';
+                document.getElementById('archivePaginationButtons').innerHTML = '';
                 return;
             }
+
             let html = '';
-            archiveData.forEach(item => {
+            paginatedItems.forEach((item, idx) => {
+                let originalIndex = archiveData.indexOf(item);
                 let filesHtml = '';
                 item.files.forEach(f => {
-                    filesHtml += `<a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; display:block;">📄 ${f.name}</a>`;
+                    filesHtml += `<a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; display:block; font-size:12px;">📄 ${f.name}</a>`;
                 });
                 if(!filesHtml) filesHtml = 'لا توجد مرفقات';
 
                 html += `<tr>
                     <td>${item.prop}</td>
                     <td>${item.floor} (${item.unit})</td>
-                    <td>${item.tenant}</td>
+                    <td>${item.tenant}<br><small style="color:#777;">📞 ${item.phone || '-'}</small></td>
                     <td>${item.amount} ر.ع</td>
                     <td>${filesHtml}</td>
+                    <td>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <button onclick="restoreLease(${originalIndex})" class="btn-action-restore" title="إعادة إلى العقود النشطة">استعادة</button>
+                            <button onclick="deleteFromArchive(${originalIndex})" class="btn-action-delete" title="حذف نهائي">حذف</button>
+                        </div>
+                    </td>
                 </tr>`;
             });
             tbody.innerHTML = html;
+
+            document.getElementById('archivePaginationText').innerText = `عرض ${start + 1} إلى ${Math.min(start + archiveRowsPerPage, filtered.length)} من ${filtered.length} مدخلات`;
+            
+            let btnHtml = '';
+            for(let i = 1; i <= totalPages; i++) {
+                btnHtml += `<button onclick="archiveCurrentPage=${i}; updateArchiveTable();" class="${archiveCurrentPage === i ? 'active' : ''}">${i}</button>`;
+            }
+            document.getElementById('archivePaginationButtons').innerHTML = btnHtml;
         }
 
         function openArchiveModal() {
+            document.getElementById('archiveSearchInput').value = '';
+            archiveCurrentPage = 1;
             updateArchiveTable();
             document.getElementById('archiveModal').style.display = 'flex';
         }
