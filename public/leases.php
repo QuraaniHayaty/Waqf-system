@@ -117,13 +117,13 @@
                     </tr>
                 </thead>
                 <tbody id="leasesTableBody">
-                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50">
+                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50" data-filename="عقد_محل_1.pdf">
                         <td>1</td>
                         <td class="col-prop">عمارة الروضة التجارية</td>
                         <td class="col-unit">الطابق الأرضي (محل رقم 1)</td>
                         <td class="col-tenant">شركة الأفق للتجارة<br><small style="color:#777;">📞 95000000</small></td>
                         <td class="col-amount">50 ر.ع</td>
-                        <td>
+                        <td class="col-file">
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد_محل_1.pdf</a>
                                 <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
@@ -230,6 +230,10 @@
                     <label>القيمة الإيجارية الشهرية (ر.ع)</label>
                     <input type="number" id="editLeaseAmount">
                 </div>
+                <div class="form-group">
+                    <label>استبدال أو تعديل عقد الإيجار (Attach File)</label>
+                    <input type="file" id="editLeaseFile">
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-save" onclick="saveEditLeaseChanges()">حفظ التغييرات</button>
@@ -318,6 +322,7 @@
             document.getElementById('editLeaseTenant').value = tenant;
             document.getElementById('editLeasePhone').value = phone;
             document.getElementById('editLeaseAmount').value = amount;
+            document.getElementById('editLeaseFile').value = ''; // تصفير حقل الملف
 
             document.getElementById('editLeaseModal').style.display = 'flex';
         }
@@ -336,6 +341,13 @@
             let tenant = document.getElementById('editLeaseTenant').value;
             let phone = document.getElementById('editLeasePhone').value;
             let amount = document.getElementById('editLeaseAmount').value;
+            let fileInput = document.getElementById('editLeaseFile');
+
+            let fileName = row.getAttribute('data-filename');
+            if (fileInput.files.length > 0) {
+                fileName = fileInput.files[0].name;
+                row.setAttribute('data-filename', fileName);
+            }
 
             row.setAttribute('data-prop', prop);
             row.setAttribute('data-floor', floor);
@@ -348,9 +360,18 @@
             row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
             row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
             row.querySelector('.col-amount').innerText = `${amount} ر.ع`;
+            
+            // تحديث عرض اسم الملف في الجدول
+            row.querySelector('.col-file').innerHTML = `
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 ${fileName}</a>
+                    <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
+                    <button onclick="this.closest('tr').remove()" style="background:#e74c3c; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="حذف العقد">🗑️</button>
+                </div>
+            `;
 
             closeEditLeaseModal();
-            alert('تم تحديث العقد بنجاح!');
+            alert('تم تحديث العقد والمرفق بنجاح!');
         }
 
         function saveNewLease() {
@@ -379,6 +400,7 @@
             newRow.setAttribute('data-tenant', tenant);
             newRow.setAttribute('data-phone', phone);
             newRow.setAttribute('data-amount', amount);
+            newRow.setAttribute('data-filename', fileName);
 
             newRow.innerHTML = `
                 <td>${rowCount}</td>
@@ -386,7 +408,7 @@
                 <td class="col-unit">${floor} (${unit})</td>
                 <td class="col-tenant">${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
                 <td class="col-amount">${amount} ر.ع</td>
-                <td>
+                <td class="col-file">
                     <div style="display:flex; gap:5px; align-items:center;">
                         <a href="#" target="_blank" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 ${fileName}</a>
                         <button onclick="window.print()" style="background:#f39c12; color:white; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:11px;" title="طباعة">🖨️</button>
