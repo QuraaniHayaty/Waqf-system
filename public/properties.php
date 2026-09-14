@@ -54,7 +54,7 @@
         
         /* النوافذ المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-box { background: white; width: 650px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-box { background: white; width: 750px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
         .modal-header h3 { font-size: 16px; color: #333; font-weight: bold; }
         .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
@@ -64,7 +64,6 @@
         .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; text-align: right; font-weight: bold; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; background: #fff; }
         
-        /* الطوابق والوحدات */
         .floats-section-title { font-size: 15px; color: #2e5a36; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #27ae60; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
         .floor-card { background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
         .floor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -80,15 +79,6 @@
         .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-start; background: #fafafa; }
         .btn-save { background-color: #27ae60; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
         .btn-save:hover { background-color: #219653; }
-
-        /* نافذة إشعار النجاح */
-        .alert-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); z-index: 2000; justify-content: center; align-items: center; }
-        .alert-box { background: white; width: 420px; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); padding: 30px 20px; text-align: center; animation: fadeIn 0.2s ease-in-out; }
-        .success-icon-circle { width: 70px; height: 70px; border: 3px solid #27ae60; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px auto; color: #27ae60; font-size: 32px; }
-        .alert-box h2 { font-size: 20px; color: #333; margin-bottom: 10px; font-weight: bold; }
-        .alert-box p { font-size: 14px; color: #666; margin-bottom: 25px; }
-        .btn-ok { background-color: #5c6bc0; color: white; border: none; padding: 8px 40px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        .btn-ok:hover { background-color: #3f51b5; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
@@ -149,19 +139,18 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr id="row-1" data-floats='[{"floor":"الطابق الأرضي","units":[{"type":"محل","no":"1"},{"type":"محل","no":"2"}]},{"floor":"الطابق الأول","units":[{"type":"شقة","no":"101"},{"type":"شقة","no":"102"}]}]'>
+                    <tr id="row-1" data-floats='[{"floor":"الطابق الأرضي","units":[{"type":"محل","no":"1"}]},{"floor":"الطابق الأول","units":[{"type":"شقة","no":"101"}]}]'>
                         <td>1</td>
                         <td class="prop-name">عمارة الروضة التجارية</td>
                         <td class="prop-location">قرية الروضة - الشارع العام</td>
-                        <td class="prop-units">4 وحدة</td>
-                        <td class="prop-income" style="font-weight: bold; color: #555;">-</td>
+                        <td class="prop-units">2 وحدة</td>
+                        <td class="prop-income" style="font-weight: bold; color: #27ae60;">50 ر.ع</td>
                         <td>
                             <div class="action-dropdown">
                                 <button class="action-btn" onclick="toggleMenu(event, 'menu-1')">⋮</button>
                                 <div id="menu-1" class="dropdown-menu">
                                     <a href="#" onclick="openEditModal(1)">تعديل</a>
                                     <a href="#" onclick="openUnitsModal(1)">وحدات الوقف</a>
-                                    <a href="#">عقود الإيجار</a>
                                     <a href="#" class="delete-item">حذف</a>
                                 </div>
                             </div>
@@ -237,9 +226,9 @@
         </div>
     </div>
 
-    <!-- نافذة عرض وحدات الوقف -->
+    <!-- نافذة عرض وحدات الوقف المستوردة من عقود الإيجار -->
     <div id="unitsModal" class="modal-overlay">
-        <div class="modal-box">
+        <div class="modal-box" style="width: 850px;">
             <div class="modal-header">
                 <h3 id="unitsModalTitle">وحدات الوقف</h3>
                 <button class="close-modal" onclick="closeUnitsModal()">&times;</button>
@@ -250,16 +239,6 @@
             <div class="modal-footer">
                 <button class="btn-save" onclick="closeUnitsModal()">إغلاق</button>
             </div>
-        </div>
-    </div>
-
-    <!-- نافذة إشعار النجاح -->
-    <div id="successAlert" class="alert-overlay">
-        <div class="alert-box">
-            <div class="success-icon-circle">✓</div>
-            <h2>نجاح</h2>
-            <p id="alertMessage">تمت العملية بنجاح</p>
-            <button class="btn-ok" onclick="closeSuccessAlert()">OK</button>
         </div>
     </div>
 
@@ -316,25 +295,26 @@
             let row = document.createElement('div');
             row.className = 'unit-row';
             row.innerHTML = `
-                <select class="unit-type">
+                <select class="unit-type" style="flex:1;">
                     <option value="" disabled ${type===''?'selected':''}>نوع الوحدة</option>
                     <option value="محل" ${type==='محل'?'selected':''}>محل</option>
                     <option value="شقة" ${type==='شقة'?'selected':''}>شقة</option>
                     <option value="مخزن" ${type==='مخزن'?'selected':''}>مخزن</option>
                     <option value="منزل" ${type==='منزل'?'selected':''}>منزل</option>
                 </select>
-                <input type="text" class="unit-no" placeholder="رقم أو اسم الوحدة (مثال: 101)" value="${no}">
+                <input type="text" class="unit-no" placeholder="رقم الوحدة" value="${no}" style="flex:1;">
                 <button type="button" class="btn-remove" onclick="this.parentElement.remove()">حذف</button>
             `;
             container.appendChild(row);
         }
 
+        /* استيراد البيانات وعقود الإيجار تلقائياً وعرضها في نافذة وحدات الوقف */
         function openUnitsModal(id) {
             let row = document.getElementById('row-' + id);
             let propName = row.querySelector('.prop-name').innerText;
             let floatsData = JSON.parse(row.getAttribute('data-floats') || '[]');
 
-            document.getElementById('unitsModalTitle').innerText = 'وحدات العقار: ' + propName;
+            document.getElementById('unitsModalTitle').innerText = 'وحدات الوقف وعقود الإيجار المستوردة: ' + propName;
             let contentDiv = document.getElementById('unitsDetailsContent');
             
             if(floatsData.length === 0) {
@@ -347,9 +327,15 @@
                     if(!f.units || f.units.length === 0) {
                         html += '<p style="font-size: 13px; color: #777;">لا توجد وحدات في هذا الطابق.</p>';
                     } else {
-                        html += '<table style="width: 100%; font-size: 13px;"><thead><tr style="background:#f1f5f9;"><th>نوع الوحدة</th><th>رقم/اسم الوحدة</th><th>حالة التأجير</th><th>القيمة الإيجارية</th></tr></thead><tbody>';
+                        html += '<table style="width: 100%; font-size: 13px;"><thead><tr style="background:#f1f5f9;"><th>نوع الوحدة</th><th>رقم/اسم الوحدة</th><th>حالة التأجير</th><th>القيمة الإيجارية</th><th>عقود الإيجار والمرفقات المستوردة</th></tr></thead><tbody>';
                         f.units.forEach(u => {
-                            html += `<tr><td>${u.type}</td><td>${u.no}</td><td><span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px; font-size:12px;">غير مؤجرة</span></td><td>-</td></tr>`;
+                            // محاكاة سحب البيانات من عقود الإيجار (مثال للمحل رقم 1)
+                            let isRented = (u.no === '1' || u.no === '101');
+                            let statusBadge = isRented ? '<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px; font-weight:bold;">مؤجرة 🟢</span>' : '<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px; font-weight:bold;">غير مؤجرة 🔴</span>';
+                            let rentText = isRented ? '50 ر.ع' : '-';
+                            let filesText = isRented ? `<a href="#" onclick="alert('جاري استعراض عقد الإيجار والمرفقات المستوردة من قسم العقود')" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد_إيجار_${u.type}_${u.no}.pdf</a>` : '<span style="color:#999; font-style:italic;">لا يوجد عقد نشط</span>';
+
+                            html += `<tr><td>${u.type}</td><td>${u.no}</td><td>${statusBadge}</td><td>${rentText}</td><td>${filesText}</td></tr>`;
                         });
                         html += '</tbody></table>';
                     }
@@ -415,12 +401,10 @@
             row.querySelector('.prop-name').innerText = name;
             row.querySelector('.prop-location').innerText = location;
             row.querySelector('.prop-units').innerText = totalUnitsCount + ' وحدة';
-            row.querySelector('.prop-income').innerText = '-';
             row.setAttribute('data-floats', JSON.stringify(floatsArr));
 
             closeEditModal();
-            document.getElementById('alertMessage').innerText = "Property updated successfully";
-            document.getElementById('successAlert').style.display = 'flex';
+            alert('تم تحديث العقار بنجاح!');
         }
 
         function openAddModal() {
@@ -473,14 +457,13 @@
                 <td class="prop-name">${name}</td>
                 <td class="prop-location">${location}</td>
                 <td class="prop-units">${totalUnitsCount} وحدة</td>
-                <td class="prop-income" style="font-weight: bold; color: #555;">-</td>
+                <td class="prop-income" style="font-weight: bold; color: #27ae60;">0 ر.ع</td>
                 <td>
                     <div class="action-dropdown">
                         <button class="action-btn" onclick="toggleMenu(event, 'menu-${newId}')">⋮</button>
                         <div id="menu-${newId}" class="dropdown-menu">
                             <a href="#" onclick="openEditModal(${newId})">تعديل</a>
                             <a href="#" onclick="openUnitsModal(${newId})">وحدات الوقف</a>
-                            <a href="#">عقود الإيجار</a>
                             <a href="#" class="delete-item">حذف</a>
                         </div>
                     </div>
@@ -491,12 +474,7 @@
             document.getElementById('paginationText').innerText = `عرض 1 إلى ${newId} من ${newId} مدخلات`;
 
             closeAddModal();
-            document.getElementById('alertMessage').innerText = "Property added successfully";
-            document.getElementById('successAlert').style.display = 'flex';
-        }
-
-        function closeSuccessAlert() {
-            document.getElementById('successAlert').style.display = 'none';
+            alert('تمت إضافة العقار بنجاح!');
         }
     </script>
 </body>
