@@ -42,7 +42,6 @@
         th { background-color: #f8f9fa; color: #2e5a36; font-weight: 600; }
         tr:hover { background-color: #fcfcfc; }
         
-        /* تنسيق قائمة الإجراءات المنسدلة */
         .action-dropdown { position: relative; display: inline-block; }
         .action-btn { background: #eef2f5; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px; color: #333; }
         .action-btn:hover { background: #dfe4ea; }
@@ -52,6 +51,23 @@
         .dropdown-menu a:hover { background-color: #f1f8f4; color: #27ae60; }
         .dropdown-menu a.delete-item { color: #c0392b; }
         .dropdown-menu a.delete-item:hover { background-color: #fde8e8; }
+        
+        /* تنسيق النافذة المنبثقة Modal مطابقة لقرآني حياتي */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: white; width: 550px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; animation: fadeIn 0.2s ease-in-out; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
+        .modal-header h3 { font-size: 16px; color: #333; font-weight: bold; }
+        .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
+        .close-modal:hover { color: #333; }
+        .modal-body { padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; text-align: left; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: right; }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-start; background: #fafafa; }
+        .btn-save { background-color: #27ae60; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-save:hover { background-color: #219653; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
         .pagination { display: flex; justify-content: flex-end; align-items: center; margin-top: 20px; gap: 5px; font-size: 14px; color: #666; }
         .pagination button { padding: 5px 10px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; }
@@ -118,7 +134,7 @@
                             <div class="action-dropdown">
                                 <button class="action-btn" onclick="toggleMenu(event, 'menu-1')">⋮</button>
                                 <div id="menu-1" class="dropdown-menu">
-                                    <a href="#">تعديل</a>
+                                    <a href="#" onclick="openEditModal('عمارة الروضة التجارية', 'قرية الروضة - الشارع العام', '12 وحدة')">تعديل</a>
                                     <a href="#">تفاصيل الوقف</a>
                                     <a href="#">عقود الإيجار</a>
                                     <a href="#" class="delete-item">حذف</a>
@@ -135,24 +151,7 @@
                             <div class="action-dropdown">
                                 <button class="action-btn" onclick="toggleMenu(event, 'menu-2')">⋮</button>
                                 <div id="menu-2" class="dropdown-menu">
-                                    <a href="#">تعديل</a>
-                                    <a href="#">تفاصيل الوقف</a>
-                                    <a href="#">عقود الإيجار</a>
-                                    <a href="#" class="delete-item">حذف</a>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>أرض مزرعة البركة</td>
-                        <td>المنطقة الزراعية</td>
-                        <td>1 وحدة</td>
-                        <td>
-                            <div class="action-dropdown">
-                                <button class="action-btn" onclick="toggleMenu(event, 'menu-3')">⋮</button>
-                                <div id="menu-3" class="dropdown-menu">
-                                    <a href="#">تعديل</a>
+                                    <a href="#" onclick="openEditModal('مجمع النور السكني', 'حي المدارس', '8 وحدات')">تعديل</a>
                                     <a href="#">تفاصيل الوقف</a>
                                     <a href="#">عقود الإيجار</a>
                                     <a href="#" class="delete-item">حذف</a>
@@ -163,7 +162,7 @@
                 </tbody>
             </table>
             <div class="pagination">
-                <span>عرض 1 إلى 3 من 3 مدخلات</span>
+                <span>عرض 1 إلى 2 من 2 مدخلات</span>
                 <button>&lt;</button>
                 <button class="active">1</button>
                 <button>&gt;</button>
@@ -171,11 +170,36 @@
         </div>
     </main>
 
+    <!-- نافذة التعديل المنبثقة (Modal) -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تعديل العقار</h3>
+                <button class="close-modal" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>اسم الوقف</label>
+                    <input type="text" id="editPropName">
+                </div>
+                <div class="form-group">
+                    <label>مكان الوقف</label>
+                    <input type="text" id="editPropLocation">
+                </div>
+                <div class="form-group">
+                    <label>عدد الوحدات</label>
+                    <input type="text" id="editPropUnits">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-save" onclick="closeEditModal()">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // دالة لفتح وإغلاق القائمة عند النقر على النقاط الثلاث
         function toggleMenu(event, menuId) {
             event.stopPropagation();
-            // إغلاق أي قوائم مفتوحة أخرى
             document.querySelectorAll('.dropdown-menu').forEach(menu => {
                 if (menu.id !== menuId) menu.style.display = 'none';
             });
@@ -183,11 +207,21 @@
             menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
         }
 
-        // إغلاق القوائم عند النقر في أي مكان خارجها
         window.onclick = function() {
             document.querySelectorAll('.dropdown-menu').forEach(menu => {
                 menu.style.display = 'none';
             });
+        }
+
+        function openEditModal(name, location, units) {
+            document.getElementById('editPropName').value = name;
+            document.getElementById('editPropLocation').value = location;
+            document.getElementById('editPropUnits').value = units;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
         }
     </script>
 </body>
