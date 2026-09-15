@@ -1,4 +1,5 @@
 <?php
+require_once 'auth.php';
 require_once 'public/db.php';
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS finances (

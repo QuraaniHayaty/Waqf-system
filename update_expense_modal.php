@@ -1,4 +1,5 @@
 <?php
+require_once 'auth.php';
 $file = "finance.php";
 $content = file_get_contents($file);
 

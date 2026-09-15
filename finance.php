@@ -1,3 +1,4 @@
+<?php require_once 'auth.php'; ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -72,6 +73,20 @@
         .modal-footer { padding: 12px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #fafafa; }
         .btn-save { background-color: #27ae60; color: white; border: none; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .btn-cancel { background-color: #94a3b8; color: white; border: none; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; height: auto; overflow: visible; }
+            aside { width: 100%; height: auto; }
+            .nav-container { max-height: 220px; overflow-y: auto; }
+            main { height: auto; overflow: visible; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); margin: 0 12px 15px 12px; }
+            .top-banner { flex-direction: column; align-items: flex-start; gap: 10px; margin: 15px 12px; }
+            .tabs-bar { margin: 0 12px 12px 12px; }
+            .action-bar { padding: 0 12px; flex-direction: column; gap: 10px; align-items: stretch; }
+            .content-card { margin: 0 12px 20px 12px; padding: 12px; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+            .modal-box { width: 95vw !important; max-width: 95vw; }
+        }
     </style>
 </head>
 <body>
@@ -91,7 +106,7 @@
             </ul>
         </div>
         <div class="logout-section">
-            <a href="#" class="logout-btn">تسجيل الخروج</a>
+            <a href="logout.php" class="logout-btn">تسجيل الخروج</a>
         </div>
     </aside>
 

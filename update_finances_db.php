@@ -1,4 +1,5 @@
 <?php
+require_once 'auth.php';
 require_once 'public/db.php';
 try {
     $pdo->exec("ALTER TABLE finances ADD COLUMN IF NOT EXISTS transaction_date DATE DEFAULT (CURRENT_DATE)");

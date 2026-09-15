@@ -1,3 +1,4 @@
+<?php require_once 'auth.php'; ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -36,6 +37,14 @@
         .top-banner { background-color: #27ae60; color: white; margin: 25px; padding: 30px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
         .banner-title h1 { font-size: 26px; margin-bottom: 8px; font-weight: bold; }
         .content-area { padding: 0 25px 25px 25px; color: #7f8c8d; font-size: 15px; }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; height: auto; overflow: visible; }
+            aside { width: 100%; height: auto; }
+            .nav-container { max-height: 220px; overflow-y: auto; }
+            main { height: auto; overflow: visible; }
+            .top-banner { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -49,13 +58,13 @@
                 <li><a href="properties.php" class="active">بيانات عقارات الوقف</a></li>
                 <li><a href="#">قائمة البرامج المستفيدة</a></li>
                 <li><a href="leases.php">عقود الإيجارات</a></li>
-                <li><a href="#">الحسابات</a></li>
+                <li><a href="finance.php">الحسابات</a></li>
                 <li><a href="#">قائمة واتساب</a></li>
                 <li><a href="#">الإعدادات</a></li>
             </ul>
         </div>
         <div class="logout-section">
-            <a href="#" class="logout-btn">تسجيل الخروج</a>
+            <a href="logout.php" class="logout-btn">تسجيل الخروج</a>
         </div>
     </aside>
     <main>
