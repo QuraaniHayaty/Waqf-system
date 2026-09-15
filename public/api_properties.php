@@ -7,17 +7,25 @@ $action = $_GET['action'] ?? '';
 
 try {
     if ($method == 'GET' && $action == 'getAll') {
+        // جلب جميع العقارات
         $stmt = $pdo->query("SELECT * FROM properties ORDER BY created_at DESC");
         $properties = $stmt->fetchAll();
         
+        // جلب جميع العقود النشطة دفعة واحدة لتجنب أي مشاكل في المطابقة
+        $leasesStmt = $pdo->query("SELECT prop, amount FROM leases");
+        $leases = $leasesStmt->fetchAll();
+
+        // حساب الدخل لكل عقار برمجياً
         foreach($properties as &$prop) {
             $prop['floats'] = json_decode($prop['floats_json'], true) ?: [];
+            $total_income = 0;
             
-            // حساب إجمالي الدخل الفعلي من العقود النشطة (غير المؤرشفة) لهذا العقار
-            $incomeStmt = $pdo->prepare("SELECT SUM(amount) as total_income FROM leases WHERE prop = ? AND archived = 0");
-            $incomeStmt->execute([$prop['name']]);
-            $incomeRes = $incomeStmt->fetch();
-            $prop['total_income'] = $incomeRes['total_income'] ? floatval($incomeRes['total_income']) : 0;
+            foreach($leases as $lease) {
+                if(trim($lease['prop']) === trim($prop['name'])) {
+                    $total_income += floatval($lease['amount']);
+                }
+            }
+            $prop['total_income'] = $total_income;
         }
         echo json_encode($properties);
     }
