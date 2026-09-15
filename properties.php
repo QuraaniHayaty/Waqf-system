@@ -124,7 +124,7 @@
 
         <div class="content-card">
             <div class="search-box">
-                <input type="text" placeholder="بحث...">
+                <input type="text" id="searchInput" placeholder="بحث..." oninput="filterProperties()">
             </div>
             <table>
                 <thead>
@@ -138,27 +138,11 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr id="row-1" data-prop="عمارة الروضة التجارية" data-floats='[{"floor":"الطابق الأرضي","units":[{"type":"محل","no":"1"}]},{"floor":"الطابق الأول","units":[{"type":"شقة","no":"101"}]}]'>
-                        <td>1</td>
-                        <td class="prop-name">عمارة الروضة التجارية</td>
-                        <td class="prop-location">قرية الروضة - الشارع العام</td>
-                        <td class="prop-units">2 وحدة</td>
-                        <td class="prop-income" style="font-weight: bold; color: #27ae60;">50 ر.ع</td>
-                        <td>
-                            <div class="action-dropdown">
-                                <button class="action-btn" onclick="toggleMenu(event, 'menu-1')">⋮</button>
-                                <div id="menu-1" class="dropdown-menu">
-                                    <a href="#" onclick="openEditModal(1)">تعديل</a>
-                                    <a href="#" onclick="openUnitsModal(1)">وحدات الوقف</a>
-                                    <a href="#" class="delete-item">حذف</a>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
+                    <tr><td colspan="6" style="text-align:center; color:#7f8c8d;">جارٍ تحميل البيانات...</td></tr>
                 </tbody>
             </table>
             <div class="pagination">
-                <span id="paginationText">عرض 1 إلى 1 من 1 مدخلات</span>
+                <span id="paginationText">عرض 0 إلى 0 من 0 مدخلات</span>
                 <button>&lt;</button>
                 <button class="active">1</button>
                 <button>&gt;</button>
@@ -242,7 +226,99 @@
     </div>
 
     <script>
-        let propertyCount = 1;
+        let propertiesCache = [];
+        let leasesCache = [];
+
+        function unitLabel(u) {
+            return u.type + ' رقم ' + u.no;
+        }
+
+        async function apiGet(url) {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('فشل الاتصال بالخادم');
+            return res.json();
+        }
+
+        async function apiPost(url, body) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error('فشل الاتصال بالخادم');
+            return res.json();
+        }
+
+        async function loadProperties() {
+            try {
+                const [properties, leases] = await Promise.all([
+                    apiGet('api_properties.php?action=getAll'),
+                    apiGet('api_leases.php?action=getAll')
+                ]);
+                propertiesCache = properties.map(p => ({ ...p, floats: p.floats || [] }));
+                leasesCache = leases;
+                renderPropertiesTable(propertiesCache);
+            } catch (e) {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center; color:#c0392b;">تعذر تحميل بيانات العقارات من قاعدة البيانات.</td></tr>';
+            }
+        }
+
+        function renderPropertiesTable(list) {
+            let tbody = document.getElementById('tableBody');
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">لا توجد عقارات مضافة.</td></tr>';
+                document.getElementById('paginationText').innerText = 'عرض 0 إلى 0 من 0 مدخلات';
+                return;
+            }
+
+            let html = '';
+            list.forEach(prop => {
+                let unitsCount = (prop.floats || []).reduce((sum, f) => sum + (f.units ? f.units.length : 0), 0);
+                html += `
+                    <tr id="row-${prop.id}" data-prop="${prop.name}" data-floats='${JSON.stringify(prop.floats).replace(/'/g, "&apos;")}'>
+                        <td>${prop.id}</td>
+                        <td class="prop-name">${prop.name}</td>
+                        <td class="prop-location">${prop.location}</td>
+                        <td class="prop-units">${unitsCount} وحدة</td>
+                        <td class="prop-income" style="font-weight: bold; color: #27ae60;">${prop.total_income} ر.ع</td>
+                        <td>
+                            <div class="action-dropdown">
+                                <button class="action-btn" onclick="toggleMenu(event, 'menu-${prop.id}')">⋮</button>
+                                <div id="menu-${prop.id}" class="dropdown-menu">
+                                    <a href="#" onclick="openEditModal(${prop.id})">تعديل</a>
+                                    <a href="#" onclick="openUnitsModal(${prop.id})">وحدات الوقف</a>
+                                    <a href="#" class="delete-item" onclick="deleteProperty(${prop.id}); return false;">حذف</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            document.getElementById('paginationText').innerText = `عرض 1 إلى ${list.length} من ${list.length} مدخلات`;
+        }
+
+        function filterProperties() {
+            let q = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!q) { renderPropertiesTable(propertiesCache); return; }
+            let filtered = propertiesCache.filter(p =>
+                (p.name || '').toLowerCase().includes(q) || (p.location || '').toLowerCase().includes(q)
+            );
+            renderPropertiesTable(filtered);
+        }
+
+        async function deleteProperty(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا العقار نهائياً؟')) return;
+            try {
+                await apiPost('api_properties.php?action=delete', { id });
+                await loadProperties();
+                alert('تم حذف العقار بنجاح.');
+            } catch (e) {
+                alert('تعذر حذف العقار. حاول مرة أخرى.');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadProperties);
 
         function toggleMenu(event, menuId) {
             event.stopPropagation();
@@ -316,7 +392,7 @@
             }
         }
 
-        /* ربط حقيقي دقيق مع العقود الفاعلة */
+        /* ربط حقيقي دقيق مع العقود الفاعلة من قاعدة البيانات */
         function openUnitsModal(id) {
             let row = document.getElementById('row-' + id);
             let propName = row.querySelector('.prop-name').innerText;
@@ -324,7 +400,7 @@
 
             document.getElementById('unitsModalTitle').innerText = 'وحدات الوقف وحالة عقود الإيجار الفعلية: ' + propName;
             let contentDiv = document.getElementById('unitsDetailsContent');
-            
+
             if(floatsData.length === 0) {
                 contentDiv.innerHTML = '<p style="color: #7f8c8d; text-align: center;">لا توجد طوابق أو وحدات مضافة لهذا العقار.</p>';
             } else {
@@ -337,12 +413,19 @@
                     } else {
                         html += '<table style="width: 100%; font-size: 13px;"><thead><tr style="background:#f1f5f9;"><th>نوع الوحدة</th><th>رقم/اسم الوحدة</th><th>حالة التأجير</th><th>القيمة الإيجارية</th><th>عقود الإيجار والمرفقات</th></tr></thead><tbody>';
                         f.units.forEach(u => {
-                            // ربط حقيقي مع عقود الإيجار النشطة (فقط محل رقم 1 له عقد نشط بـ 50 ريال، وبقية الوحدات غير مؤجرة تماماً)
-                            let isRented = (propName === 'عمارة الروضة التجارية' && f.floor === 'الطابق الأرضي' && u.no === '1');
-                            
+                            // ربط حقيقي مع عقود الإيجار النشطة المخزنة في قاعدة البيانات
+                            let activeLease = leasesCache.find(l => l.prop === propName && l.floor === f.floor && l.unit === unitLabel(u));
+                            let isRented = !!activeLease;
+
                             let statusBadge = isRented ? '<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px; font-weight:bold;">مؤجرة 🟢</span>' : '<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px; font-weight:bold;">غير مؤجرة 🔴</span>';
-                            let rentText = isRented ? '50 ر.ع' : '-';
-                            let filesText = isRented ? `<a href="#" onclick="viewFile('#', 'عقد_محل_1.pdf')" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد_محل_1.pdf</a>` : '<span style="color:#999; font-style:italic;">لا يوجد عقد نشط</span>';
+                            let rentText = isRented ? `${activeLease.amount} ر.ع` : '-';
+                            let filesText = '<span style="color:#999; font-style:italic;">لا يوجد عقد نشط</span>';
+                            if (isRented) {
+                                let files = activeLease.files || [];
+                                filesText = files.length > 0
+                                    ? files.map(fl => `<a href="#" onclick="viewFile('${fl.url}', '${fl.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 ${fl.name}</a>`).join('<br>')
+                                    : '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
+                            }
 
                             html += `<tr><td>${u.type}</td><td>${u.no}</td><td>${statusBadge}</td><td>${rentText}</td><td>${filesText}</td></tr>`;
                         });
@@ -383,37 +466,36 @@
             document.getElementById('editModal').style.display = 'none';
         }
 
-        function saveEditChanges() {
+        async function saveEditChanges() {
             let id = document.getElementById('editPropId').value;
-            let row = document.getElementById('row-' + id);
-
             let name = document.getElementById('editPropName').value;
             let location = document.getElementById('editPropLocation').value;
 
-            let floatsArr = [];
-            let totalUnitsCount = 0;
+            if(!name || !location) {
+                alert('الرجاء تعبئة اسم الوقف ومكانه');
+                return;
+            }
 
+            let floatsArr = [];
             document.querySelectorAll('#edit-floats-container .floor-card').forEach(fc => {
                 let floorName = fc.querySelector('.floor-name-input').value || 'طابق غير محدد';
                 let unitsArr = [];
                 fc.querySelectorAll('.unit-row').forEach(ur => {
                     let t = ur.querySelector('.unit-type').value;
                     let n = ur.querySelector('.unit-no').value;
-                    if(t && n) {
-                        unitsArr.push({ type: t, no: n });
-                        totalUnitsCount++;
-                    }
+                    if(t && n) unitsArr.push({ type: t, no: n });
                 });
                 floatsArr.push({ floor: floorName, units: unitsArr });
             });
 
-            row.querySelector('.prop-name').innerText = name;
-            row.querySelector('.prop-location').innerText = location;
-            row.querySelector('.prop-units').innerText = totalUnitsCount + ' وحدة';
-            row.setAttribute('data-floats', JSON.stringify(floatsArr));
-
-            closeEditModal();
-            alert('تم تحديث العقار بنجاح!');
+            try {
+                await apiPost('api_properties.php?action=update', { id, name, location, floats: floatsArr });
+                closeEditModal();
+                await loadProperties();
+                alert('تم تحديث العقار بنجاح!');
+            } catch (e) {
+                alert('تعذر تحديث العقار. حاول مرة أخرى.');
+            }
         }
 
         function openAddModal() {
@@ -428,7 +510,7 @@
             document.getElementById('addModal').style.display = 'none';
         }
 
-        function saveNewProperty() {
+        async function saveNewProperty() {
             let name = document.getElementById('addPropName').value;
             let location = document.getElementById('addPropLocation').value;
 
@@ -438,52 +520,25 @@
             }
 
             let floatsArr = [];
-            let totalUnitsCount = 0;
-
             document.querySelectorAll('#add-floats-container .floor-card').forEach(fc => {
                 let floorName = fc.querySelector('.floor-name-input').value || 'طابق غير محدد';
                 let unitsArr = [];
                 fc.querySelectorAll('.unit-row').forEach(ur => {
                     let t = ur.querySelector('.unit-type').value;
                     let n = ur.querySelector('.unit-no').value;
-                    if(t && n) {
-                        unitsArr.push({ type: t, no: n });
-                        totalUnitsCount++;
-                    }
+                    if(t && n) unitsArr.push({ type: t, no: n });
                 });
                 floatsArr.push({ floor: floorName, units: unitsArr });
             });
 
-            propertyCount++;
-            let newId = propertyCount;
-            let tbody = document.getElementById('tableBody');
-
-            let newRow = document.createElement('tr');
-            newRow.id = 'row-' + newId;
-            newRow.setAttribute('data-floats', JSON.stringify(floatsArr));
-            newRow.innerHTML = `
-                <td>${newId}</td>
-                <td class="prop-name">${name}</td>
-                <td class="prop-location">${location}</td>
-                <td class="prop-units">${totalUnitsCount} وحدة</td>
-                <td class="prop-income" style="font-weight: bold; color: #27ae60;">0 ر.ع</td>
-                <td>
-                    <div class="action-dropdown">
-                        <button class="action-btn" onclick="toggleMenu(event, 'menu-${newId}')">⋮</button>
-                        <div id="menu-${newId}" class="dropdown-menu">
-                            <a href="#" onclick="openEditModal(${newId})">تعديل</a>
-                            <a href="#" onclick="openUnitsModal(${newId})">وحدات الوقف</a>
-                            <a href="#" class="delete-item">حذف</a>
-                        </div>
-                    </div>
-                </td>
-            `;
-
-            tbody.appendChild(newRow);
-            document.getElementById('paginationText').innerText = `عرض 1 إلى ${newId} من ${newId} مدخلات`;
-
-            closeAddModal();
-            alert('تمت إضافة العقار بنجاح!');
+            try {
+                await apiPost('api_properties.php?action=add', { name, location, floats: floatsArr });
+                closeAddModal();
+                await loadProperties();
+                alert('تمت إضافة العقار بنجاح!');
+            } catch (e) {
+                alert('تعذر إضافة العقار. حاول مرة أخرى.');
+            }
         }
     </script>
 </body>

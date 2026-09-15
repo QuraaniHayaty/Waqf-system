@@ -123,7 +123,7 @@
 
         <div class="content-card">
             <div class="search-box">
-                <input type="text" placeholder="بحث عن عقد...">
+                <input type="text" id="leaseSearchInput" placeholder="بحث عن عقد..." oninput="filterLeases()">
             </div>
             <table>
                 <thead>
@@ -139,34 +139,11 @@
                     </tr>
                 </thead>
                 <tbody id="leasesTableBody">
-                    <tr id="lease-row-1" data-prop="عمارة الروضة التجارية" data-floor="الطابق الأرضي" data-unit="محل رقم 1" data-tenant="شركة الأفق للتجارة" data-phone="95000000" data-amount="50" data-start="2026-01-01" data-end="2028-01-01" data-files='[{"name": "عقد_محل_1.pdf", "url": "#"}]'>
-                        <td>1</td>
-                        <td class="col-prop">عمارة الروضة التجارية</td>
-                        <td class="col-unit">الطابق الأرضي (محل رقم 1)</td>
-                        <td class="col-tenant">شركة الأفق للتجارة<br><small style="color:#777;">📞 95000000</small></td>
-                        <td class="col-duration"></td>
-                        <td class="col-amount">50 ر.ع</td>
-                        <td class="col-files">
-                            <div style="display:flex; flex-direction:column; gap:4px;">
-                                <div style="display:flex; gap:5px; align-items:center;">
-                                    <a href="#" onclick="viewFile('#', 'عقد_محل_1.pdf')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 عقد_محل_1.pdf</a>
-                                    <button onclick="viewFile('#', 'عقد_محل_1.pdf')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div style="display:flex; gap:4px; align-items:center;">
-                                <button onclick="openEditLeaseModal(1)" class="btn-action-edit">تعديل</button>
-                                <button onclick="openRenewLeaseModal(1)" class="btn-action-renew">تجديد</button>
-                                <button onclick="archiveLease(1)" class="btn-action-archive">أرشيف</button>
-                                <button onclick="deleteLease(1)" class="btn-action-delete">حذف</button>
-                            </div>
-                        </td>
-                    </tr>
+                    <tr><td colspan="8" style="text-align:center; color:#7f8c8d;">جارٍ تحميل البيانات...</td></tr>
                 </tbody>
             </table>
             <div class="pagination">
-                <span>عرض 1 إلى 1 من 1 مدخلات</span>
+                <span id="leasesPaginationText">عرض 0 إلى 0 من 0 مدخلات</span>
                 <button>&lt;</button>
                 <button class="active">1</button>
                 <button>&gt;</button>
@@ -186,7 +163,6 @@
                     <label>اختر العقار</label>
                     <select id="leasePropSelect" onchange="loadFloatsForProperty('leasePropSelect', 'leaseFloorSelect', 'leaseUnitSelect')">
                         <option value="" disabled selected>اختر العقار</option>
-                        <option value="عمارة الروضة التجارية">عمارة الروضة التجارية</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -250,7 +226,6 @@
                 <div class="form-group">
                     <label>اختر العقار</label>
                     <select id="editLeasePropSelect" onchange="loadFloatsForProperty('editLeasePropSelect', 'editLeaseFloorSelect', 'editLeaseUnitSelect')">
-                        <option value="عمارة الروضة التجارية">عمارة الروضة التجارية</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -312,7 +287,6 @@
                 <div class="form-group">
                     <label>اختر العقار</label>
                     <select id="renewLeasePropSelect" onchange="loadFloatsForProperty('renewLeasePropSelect', 'renewLeaseFloorSelect', 'renewLeaseUnitSelect')">
-                        <option value="عمارة الروضة التجارية">عمارة الروضة التجارية</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -398,17 +372,110 @@
     </div>
 
     <script>
-        const samplePropertyData = {
-            "عمارة الروضة التجارية": [
-                { floor: "الطابق الأرضي", units: ["محل رقم 1", "محل رقم 2"] },
-                { floor: "الطابق الأول", units: ["شقة رقم 101", "شقة رقم 102"] }
-            ]
-        };
-
+        let propertiesCache = [];
+        let leasesCache = [];
         let archiveData = [];
         let archiveCurrentPage = 1;
         const archiveRowsPerPage = 10;
-        const currentDate = new Date('2026-09-15');
+        const currentDate = new Date();
+
+        function unitLabel(u) {
+            return u.type + ' رقم ' + u.no;
+        }
+
+        async function apiGet(url) {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('فشل الاتصال بالخادم');
+            return res.json();
+        }
+
+        async function apiPost(url, body) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error('فشل الاتصال بالخادم');
+            return res.json();
+        }
+
+        async function loadPageData() {
+            try {
+                const [properties, leases] = await Promise.all([
+                    apiGet('api_properties.php?action=getAll'),
+                    apiGet('api_leases.php?action=getAll')
+                ]);
+                propertiesCache = properties.map(p => ({ ...p, floats: p.floats || [] }));
+                leasesCache = leases;
+                renderLeasesTable(leasesCache);
+            } catch (e) {
+                document.getElementById('leasesTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center; color:#c0392b;">تعذر تحميل بيانات العقود من قاعدة البيانات.</td></tr>';
+            }
+        }
+
+        function leaseFilesHtml(files) {
+            if (!files || files.length === 0) {
+                return '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:4px;">';
+            files.forEach(f => {
+                html += `
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 ${f.name}</a>
+                        <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function renderLeasesTable(list) {
+            let tbody = document.getElementById('leasesTableBody');
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#7f8c8d;">لا توجد عقود إيجار نشطة.</td></tr>';
+                document.getElementById('leasesPaginationText').innerText = 'عرض 0 إلى 0 من 0 مدخلات';
+                return;
+            }
+
+            let html = '';
+            list.forEach(lease => {
+                let res = calculateDurationAndStatus(lease.start_date, lease.end_date);
+                html += `
+                    <tr id="lease-row-${lease.id}">
+                        <td>${lease.id}</td>
+                        <td class="col-prop">${lease.prop}</td>
+                        <td class="col-unit">${lease.floor} (${lease.unit})</td>
+                        <td class="col-tenant">${lease.tenant}<br><small style="color:#777;">📞 ${lease.phone || '-'}</small></td>
+                        <td class="col-duration"><b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${lease.start_date}<br>إلى: ${lease.end_date}</small></td>
+                        <td class="col-amount">${lease.amount} ر.ع</td>
+                        <td class="col-files">${leaseFilesHtml(lease.files)}</td>
+                        <td>
+                            <div style="display:flex; gap:4px; align-items:center;">
+                                <button onclick="openEditLeaseModal(${lease.id})" class="btn-action-edit">تعديل</button>
+                                <button onclick="openRenewLeaseModal(${lease.id})" class="btn-action-renew">تجديد</button>
+                                <button onclick="archiveLease(${lease.id})" class="btn-action-archive">أرشيف</button>
+                                <button onclick="deleteLease(${lease.id})" class="btn-action-delete">حذف</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            document.getElementById('leasesPaginationText').innerText = `عرض 1 إلى ${list.length} من ${list.length} مدخلات`;
+        }
+
+        function filterLeases() {
+            let q = document.getElementById('leaseSearchInput').value.trim().toLowerCase();
+            if (!q) { renderLeasesTable(leasesCache); return; }
+            let filtered = leasesCache.filter(l =>
+                (l.prop || '').toLowerCase().includes(q) ||
+                (l.tenant || '').toLowerCase().includes(q) ||
+                (l.unit || '').toLowerCase().includes(q) ||
+                (l.floor || '').toLowerCase().includes(q)
+            );
+            renderLeasesTable(filtered);
+        }
 
         function calculateDurationAndStatus(startDateStr, endDateStr) {
             if(!startDateStr || !endDateStr) return { text: 'غير محدد', statusHtml: '' };
@@ -436,19 +503,7 @@
             };
         }
 
-        window.onload = function() {
-            refreshTableDurations();
-        };
-
-        function refreshTableDurations() {
-            let row = document.getElementById('lease-row-1');
-            if(row) {
-                let start = row.getAttribute('data-start');
-                let end = row.getAttribute('data-end');
-                let res = calculateDurationAndStatus(start, end);
-                row.querySelector('.col-duration').innerHTML = `<b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small>`;
-            }
-        }
+        window.addEventListener('DOMContentLoaded', loadPageData);
 
         function addAttachmentRow(containerId, fileObj = null) {
             let container = document.getElementById(containerId);
@@ -475,69 +530,249 @@
             }
         }
 
-        function deleteLease(id) {
-            if(confirm('هل أنت متأكد من حذف هذا العقد نهائياً؟')) {
-                let row = document.getElementById('lease-row-' + id);
-                if(row) row.remove();
+        async function deleteLease(id) {
+            if(!confirm('هل أنت متأكد من حذف هذا العقد نهائياً؟')) return;
+            try {
+                await apiPost('api_leases.php?action=delete', { id });
+                await loadPageData();
                 alert('تم حذف العقد بنجاح.');
+            } catch (e) {
+                alert('تعذر حذف العقد. حاول مرة أخرى.');
             }
         }
 
-        function archiveLease(id) {
-            if(confirm('هل تريد أرشفة هذا العقد (نقله إلى الأرشيف)؟')) {
-                let row = document.getElementById('lease-row-' + id);
-                if(row) {
-                    let prop = row.getAttribute('data-prop');
-                    let floor = row.getAttribute('data-floor');
-                    let unit = row.getAttribute('data-unit');
-                    let tenant = row.getAttribute('data-tenant');
-                    let phone = row.getAttribute('data-phone');
-                    let amount = row.getAttribute('data-amount');
-                    let start = row.getAttribute('data-start');
-                    let end = row.getAttribute('data-end');
-                    let files = JSON.parse(row.getAttribute('data-files') || '[]');
+        async function archiveLease(id) {
+            if(!confirm('هل تريد أرشفة هذا العقد (نقله إلى الأرشيف)؟')) return;
+            try {
+                await apiPost('api_leases.php?action=archive', { id });
+                await loadPageData();
+                alert('تم نقل العقد إلى الأرشيف بنجاح.');
+            } catch (e) {
+                alert('تعذر أرشفة العقد. حاول مرة أخرى.');
+            }
+        }
 
-                    archiveData.push({ id, prop, floor, unit, tenant, phone, amount, start, end, files });
-                    row.remove();
-                    updateArchiveTable();
-                    alert('تم نقل العقد إلى الأرشيف بنجاح.');
+        function populatePropertyOptions(selectId, placeholder) {
+            let select = document.getElementById(selectId);
+            select.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+            propertiesCache.forEach(p => {
+                let opt = document.createElement('option');
+                opt.value = p.name;
+                opt.innerText = p.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function loadFloatsForProperty(propId, floorId, unitId) {
+            let prop = document.getElementById(propId).value;
+            let floorSelect = document.getElementById(floorId);
+            floorSelect.innerHTML = '<option value="" disabled selected>اختر الطابق</option>';
+
+            let unitSelect = document.getElementById(unitId);
+            unitSelect.innerHTML = '<option value="" disabled selected>اختر الطابق أولاً</option>';
+
+            let property = propertiesCache.find(p => p.name === prop);
+            if(property) {
+                (property.floats || []).forEach(f => {
+                    let opt = document.createElement('option');
+                    opt.value = f.floor;
+                    opt.innerText = f.floor;
+                    floorSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function loadUnitsForFloor(propId, floorId, unitId) {
+            let prop = document.getElementById(propId).value;
+            let floor = document.getElementById(floorId).value;
+            let unitSelect = document.getElementById(unitId);
+            unitSelect.innerHTML = '<option value="" disabled selected>اختر الوحدة</option>';
+
+            let property = propertiesCache.find(p => p.name === prop);
+            if(property) {
+                let foundFloor = (property.floats || []).find(f => f.floor === floor);
+                if(foundFloor && foundFloor.units) {
+                    foundFloor.units.forEach(u => {
+                        let label = unitLabel(u);
+                        let opt = document.createElement('option');
+                        opt.value = label;
+                        opt.innerText = label;
+                        unitSelect.appendChild(opt);
+                    });
                 }
             }
         }
 
+        function collectAttachments(containerId, callback) {
+            let fileObjects = [];
+            let rows = document.querySelectorAll(`#${containerId} .attachment-row`);
+
+            if(rows.length === 0) { callback([]); return; }
+
+            let processed = 0;
+            rows.forEach((ar) => {
+                let fi = ar.querySelector('.att-file');
+                let existingUrl = fi.getAttribute('data-url');
+                let existingName = fi.getAttribute('data-name');
+
+                if(fi.files.length > 0) {
+                    let file = fi.files[0];
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        fileObjects.push({ name: file.name, url: e.target.result });
+                        processed++;
+                        if(processed === rows.length) callback(fileObjects);
+                    };
+                    reader.readAsDataURL(file);
+                } else if(existingName) {
+                    fileObjects.push({ name: existingName, url: existingUrl || '#' });
+                    processed++;
+                    if(processed === rows.length) callback(fileObjects);
+                } else {
+                    processed++;
+                    if(processed === rows.length) callback(fileObjects);
+                }
+            });
+        }
+
+        function openAddLeaseModal() {
+            populatePropertyOptions('leasePropSelect', 'اختر العقار');
+            document.getElementById('leaseFloorSelect').innerHTML = '<option value="" disabled selected>اختر الطابق أولاً</option>';
+            document.getElementById('leaseUnitSelect').innerHTML = '<option value="" disabled selected>اختر الوحدة أولاً</option>';
+            document.getElementById('leaseTenant').value = '';
+            document.getElementById('leasePhone').value = '';
+            document.getElementById('leaseAmount').value = '';
+            document.getElementById('leaseStartDate').value = '';
+            document.getElementById('leaseEndDate').value = '';
+
+            document.getElementById('add-attachments-container').innerHTML = '';
+            addAttachmentRow('add-attachments-container');
+
+            document.getElementById('addLeaseModal').style.display = 'flex';
+        }
+
+        function closeAddLeaseModal() {
+            document.getElementById('addLeaseModal').style.display = 'none';
+        }
+
+        function saveNewLease() {
+            let prop = document.getElementById('leasePropSelect').value;
+            let floor = document.getElementById('leaseFloorSelect').value;
+            let unit = document.getElementById('leaseUnitSelect').value;
+            let tenant = document.getElementById('leaseTenant').value;
+            let phone = document.getElementById('leasePhone').value;
+            let amount = document.getElementById('leaseAmount').value;
+            let start = document.getElementById('leaseStartDate').value;
+            let end = document.getElementById('leaseEndDate').value;
+
+            if(!prop || !floor || !unit || !tenant || !amount || !start || !end) {
+                alert('الرجاء تعبئة كافة الحقول بما فيها تواريخ بداية ونهاية العقد');
+                return;
+            }
+
+            collectAttachments('add-attachments-container', async (filesArr) => {
+                try {
+                    await apiPost('api_leases.php?action=add', {
+                        prop, floor, unit, tenant, phone, amount,
+                        start_date: start, end_date: end, files: filesArr
+                    });
+                    closeAddLeaseModal();
+                    await loadPageData();
+                    alert('تمت إضافة عقد الإيجار وحالته بنجاح!');
+                } catch (e) {
+                    alert('تعذر إضافة عقد الإيجار. حاول مرة أخرى.');
+                }
+            });
+        }
+
+        function openEditLeaseModal(id) {
+            let lease = leasesCache.find(l => l.id == id);
+            if(!lease) return;
+
+            document.getElementById('editLeaseId').value = id;
+            populatePropertyOptions('editLeasePropSelect', 'اختر العقار');
+            document.getElementById('editLeasePropSelect').value = lease.prop;
+
+            loadFloatsForProperty('editLeasePropSelect', 'editLeaseFloorSelect', 'editLeaseUnitSelect');
+            document.getElementById('editLeaseFloorSelect').value = lease.floor;
+
+            loadUnitsForFloor('editLeasePropSelect', 'editLeaseFloorSelect', 'editLeaseUnitSelect');
+            document.getElementById('editLeaseUnitSelect').value = lease.unit;
+
+            document.getElementById('editLeaseTenant').value = lease.tenant;
+            document.getElementById('editLeasePhone').value = lease.phone;
+            document.getElementById('editLeaseAmount').value = lease.amount;
+            document.getElementById('editLeaseStartDate').value = lease.start_date || '';
+            document.getElementById('editLeaseEndDate').value = lease.end_date || '';
+
+            let attContainer = document.getElementById('edit-attachments-container');
+            attContainer.innerHTML = '';
+            let files = lease.files || [];
+            if(files.length > 0) {
+                files.forEach(f => addAttachmentRow('edit-attachments-container', f));
+            } else {
+                addAttachmentRow('edit-attachments-container');
+            }
+
+            document.getElementById('editLeaseModal').style.display = 'flex';
+        }
+
+        function closeEditLeaseModal() {
+            document.getElementById('editLeaseModal').style.display = 'none';
+        }
+
+        function saveEditLeaseChanges() {
+            let id = document.getElementById('editLeaseId').value;
+            let prop = document.getElementById('editLeasePropSelect').value;
+            let floor = document.getElementById('editLeaseFloorSelect').value;
+            let unit = document.getElementById('editLeaseUnitSelect').value;
+            let tenant = document.getElementById('editLeaseTenant').value;
+            let phone = document.getElementById('editLeasePhone').value;
+            let amount = document.getElementById('editLeaseAmount').value;
+            let start = document.getElementById('editLeaseStartDate').value;
+            let end = document.getElementById('editLeaseEndDate').value;
+
+            collectAttachments('edit-attachments-container', async (filesArr) => {
+                try {
+                    await apiPost('api_leases.php?action=update', {
+                        id, prop, floor, unit, tenant, phone, amount,
+                        start_date: start, end_date: end, files: filesArr
+                    });
+                    closeEditLeaseModal();
+                    await loadPageData();
+                    alert('تم تحديث العقد وحالته بنجاح!');
+                } catch (e) {
+                    alert('تعذر تحديث العقد. حاول مرة أخرى.');
+                }
+            });
+        }
+
         /* فتح نافذة تجديد العقد المحملة بكامل البيانات والمرفقات السابقة */
         function openRenewLeaseModal(id) {
-            let row = document.getElementById('lease-row-' + id);
-            let prop = row.getAttribute('data-prop');
-            let floor = row.getAttribute('data-floor');
-            let unit = row.getAttribute('data-unit');
-            let tenant = row.getAttribute('data-tenant');
-            let phone = row.getAttribute('data-phone');
-            let amount = row.getAttribute('data-amount');
-            let files = JSON.parse(row.getAttribute('data-files') || '[]');
+            let lease = leasesCache.find(l => l.id == id);
+            if(!lease) return;
 
             document.getElementById('renewLeaseId').value = id;
-            document.getElementById('renewLeasePropSelect').value = prop;
-            
-            loadFloatsForProperty('renewLeasePropSelect', 'renewLeaseFloorSelect', 'renewLeaseUnitSelect');
-            document.getElementById('renewLeaseFloorSelect').value = floor;
-            
-            loadUnitsForFloor('renewLeasePropSelect', 'renewLeaseFloorSelect', 'renewLeaseUnitSelect');
-            document.getElementById('renewLeaseUnitSelect').value = unit;
+            populatePropertyOptions('renewLeasePropSelect', 'اختر العقار');
+            document.getElementById('renewLeasePropSelect').value = lease.prop;
 
-            document.getElementById('renewLeaseTenant').value = tenant;
-            document.getElementById('renewLeasePhone').value = phone;
-            document.getElementById('renewLeaseAmount').value = amount;
+            loadFloatsForProperty('renewLeasePropSelect', 'renewLeaseFloorSelect', 'renewLeaseUnitSelect');
+            document.getElementById('renewLeaseFloorSelect').value = lease.floor;
+
+            loadUnitsForFloor('renewLeasePropSelect', 'renewLeaseFloorSelect', 'renewLeaseUnitSelect');
+            document.getElementById('renewLeaseUnitSelect').value = lease.unit;
+
+            document.getElementById('renewLeaseTenant').value = lease.tenant;
+            document.getElementById('renewLeasePhone').value = lease.phone;
+            document.getElementById('renewLeaseAmount').value = lease.amount;
             document.getElementById('renewLeaseStartDate').value = '';
             document.getElementById('renewLeaseEndDate').value = '';
 
             let attContainer = document.getElementById('renew-attachments-container');
             attContainer.innerHTML = '';
-            
+            let files = lease.files || [];
             if(files.length > 0) {
-                files.forEach(f => {
-                    addAttachmentRow('renew-attachments-container', f);
-                });
+                files.forEach(f => addAttachmentRow('renew-attachments-container', f));
             } else {
                 addAttachmentRow('renew-attachments-container');
             }
@@ -549,11 +784,9 @@
             document.getElementById('renewLeaseModal').style.display = 'none';
         }
 
-        /* حفظ التجديد: أرشفة القديم وحفظ الجديد بالمرفقات والبيانات المحدثة */
+        /* حفظ التجديد: أرشفة القديم وحفظ الجديد بالمرفقات والبيانات المحدثة (عملية واحدة في قاعدة البيانات) */
         function saveRenewLeaseChanges() {
             let id = document.getElementById('renewLeaseId').value;
-            let row = document.getElementById('lease-row-' + id);
-
             let prop = document.getElementById('renewLeasePropSelect').value;
             let floor = document.getElementById('renewLeaseFloorSelect').value;
             let unit = document.getElementById('renewLeaseUnitSelect').value;
@@ -568,155 +801,41 @@
                 return;
             }
 
-            // 1. أرشفة العقد الحالي أولاً
-            let oldProp = row.getAttribute('data-prop');
-            let oldFloor = row.getAttribute('data-floor');
-            let oldUnit = row.getAttribute('data-unit');
-            let oldTenant = row.getAttribute('data-tenant');
-            let oldPhone = row.getAttribute('data-phone');
-            let oldAmount = row.getAttribute('data-amount');
-            let oldStart = row.getAttribute('data-start');
-            let oldEnd = row.getAttribute('data-end');
-            let oldFiles = JSON.parse(row.getAttribute('data-files') || '[]');
-
-            archiveData.push({ id, prop: oldProp, floor: oldFloor, unit: oldUnit, tenant: oldTenant, phone: oldPhone, amount: oldAmount, start: oldStart, end: oldEnd, files: oldFiles });
-
-            // 2. معالجة المرفقات (المحدثة / المحذوفة / الجديدة)
-            let fileObjects = [];
-            let rows = document.querySelectorAll('#renew-attachments-container .attachment-row');
-            let processed = 0;
-
-            if(rows.length === 0) finishRenew([]);
-
-            rows.forEach((ar, idx) => {
-                let fi = ar.querySelector('.att-file');
-                let existingUrl = fi.getAttribute('data-url');
-                let existingName = fi.getAttribute('data-name');
-
-                if(fi.files.length > 0) {
-                    let file = fi.files[0];
-                    let reader = new FileReader();
-                    reader.onload = function(e) {
-                        fileObjects.push({ name: file.name, url: e.target.result });
-                        processed++;
-                        if(processed === rows.length) finishRenew(fileObjects);
-                    };
-                    reader.readAsDataURL(file);
-                } else if(existingName) {
-                    fileObjects.push({ name: existingName, url: existingUrl || '#' });
-                    processed++;
-                    if(processed === rows.length) finishRenew(fileObjects);
-                } else {
-                    processed++;
-                    if(processed === rows.length) finishRenew(fileObjects);
+            collectAttachments('renew-attachments-container', async (filesArr) => {
+                try {
+                    await apiPost('api_leases.php?action=renew', {
+                        id, prop, floor, unit, tenant, phone, amount: newAmount,
+                        start_date: newStart, end_date: newEnd, files: filesArr
+                    });
+                    closeRenewLeaseModal();
+                    await loadPageData();
+                    alert('تم تجديد العقد بنجاح! ونقل العقد السابق إلى الأرشيف.');
+                } catch (e) {
+                    alert('تعذر تجديد العقد. حاول مرة أخرى.');
                 }
             });
-
-            function finishRenew(filesArr) {
-                let res = calculateDurationAndStatus(newStart, newEnd);
-
-                row.setAttribute('data-prop', prop);
-                row.setAttribute('data-floor', floor);
-                row.setAttribute('data-unit', unit);
-                row.setAttribute('data-tenant', tenant);
-                row.setAttribute('data-phone', phone);
-                row.setAttribute('data-amount', newAmount);
-                row.setAttribute('data-start', newStart);
-                row.setAttribute('data-end', newEnd);
-                row.setAttribute('data-files', JSON.stringify(filesArr));
-
-                row.querySelector('.col-prop').innerText = prop;
-                row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
-                row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
-                row.querySelector('.col-duration').innerHTML = `<b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${newStart}<br>إلى: ${newEnd}</small>`;
-                row.querySelector('.col-amount').innerText = `${newAmount} ر.ع`;
-
-                let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
-                if(filesArr.length === 0) {
-                    filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
-                } else {
-                    filesArr.forEach(f => {
-                        filesHtml += `
-                            <div style="display:flex; gap:5px; align-items:center;">
-                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 ${f.name}</a>
-                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
-                            </div>
-                        `;
-                    });
-                }
-                filesHtml += '</div>';
-                row.querySelector('.col-files').innerHTML = filesHtml;
-
-                closeRenewLeaseModal();
-                updateArchiveTable();
-                alert('تم تجديد العقد بنجاح! ونقل العقد السابق إلى الأرشيف.');
-            }
         }
 
-        function restoreLease(index) {
-            if(confirm('هل تريد استعادة هذا العقد وإعادته إلى قائمة عقود الإيجار النشطة؟')) {
-                let item = archiveData.splice(index, 1)[0];
-                let tbody = document.getElementById('leasesTableBody');
-                let rowCount = tbody.rows.length + 1;
-
-                let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
-                if(item.files.length === 0) {
-                    filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
-                } else {
-                    item.files.forEach(f => {
-                        filesHtml += `
-                            <div style="display:flex; gap:5px; align-items:center;">
-                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 ${f.name}</a>
-                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
-                            </div>
-                        `;
-                    });
-                }
-                filesHtml += '</div>';
-
-                let res = calculateDurationAndStatus(item.start, item.end);
-
-                let newRow = document.createElement('tr');
-                newRow.id = 'lease-row-' + rowCount;
-                newRow.setAttribute('data-prop', item.prop);
-                newRow.setAttribute('data-floor', item.floor);
-                newRow.setAttribute('data-unit', item.unit);
-                newRow.setAttribute('data-tenant', item.tenant);
-                newRow.setAttribute('data-phone', item.phone);
-                newRow.setAttribute('data-amount', item.amount);
-                newRow.setAttribute('data-start', item.start);
-                newRow.setAttribute('data-end', item.end);
-                newRow.setAttribute('data-files', JSON.stringify(item.files));
-
-                newRow.innerHTML = `
-                    <td>${rowCount}</td>
-                    <td class="col-prop">${item.prop}</td>
-                    <td class="col-unit">${item.floor} (${item.unit})</td>
-                    <td class="col-tenant">${item.tenant}<br><small style="color:#777;">📞 ${item.phone || '-'}</small></td>
-                    <td class="col-duration"><b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${item.start}<br>إلى: ${item.end}</small></td>
-                    <td class="col-amount">${item.amount} ر.ع</td>
-                    <td class="col-files">${filesHtml}</td>
-                    <td>
-                        <div style="display:flex; gap:4px; align-items:center;">
-                            <button onclick="openEditLeaseModal(${rowCount})" class="btn-action-edit">تعديل</button>
-                            <button onclick="openRenewLeaseModal(${rowCount})" class="btn-action-renew">تجديد</button>
-                            <button onclick="archiveLease(${rowCount})" class="btn-action-archive">أرشيف</button>
-                            <button onclick="deleteLease(${rowCount})" class="btn-action-delete">حذف</button>
-                        </div>
-                    </td>
-                `;
-
-                tbody.appendChild(newRow);
-                updateArchiveTable();
+        async function restoreLease(id) {
+            if(!confirm('هل تريد استعادة هذا العقد وإعادته إلى قائمة عقود الإيجار النشطة؟')) return;
+            try {
+                await apiPost('api_leases.php?action=restore', { id });
+                await refreshArchiveData();
+                await loadPageData();
                 alert('تمت استعادة العقد بنجاح.');
+            } catch (e) {
+                alert('تعذر استعادة العقد. حاول مرة أخرى.');
             }
         }
 
-        function deleteFromArchive(index) {
-            if(confirm('هل أنت متأكد من حذف هذا العقد نهائياً من الأرشيف؟')) {
-                archiveData.splice(index, 1);
-                updateArchiveTable();
+        async function deleteFromArchive(id) {
+            if(!confirm('هل أنت متأكد من حذف هذا العقد نهائياً من الأرشيف؟')) return;
+            try {
+                await apiPost('api_leases.php?action=delete', { id });
+                await refreshArchiveData();
                 alert('تم حذف العقد نهائياً.');
+            } catch (e) {
+                alert('تعذر حذف العقد من الأرشيف. حاول مرة أخرى.');
             }
         }
 
@@ -749,27 +868,20 @@
             }
 
             let html = '';
-            paginatedItems.forEach((item, idx) => {
-                let originalIndex = archiveData.indexOf(item);
-                let filesHtml = '';
-                item.files.forEach(f => {
-                    filesHtml += `<a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; display:block; font-size:12px;">📄 ${f.name}</a>`;
-                });
-                if(!filesHtml) filesHtml = 'لا توجد مرفقات';
-
-                let res = calculateDurationAndStatus(item.start, item.end);
+            paginatedItems.forEach((item) => {
+                let res = calculateDurationAndStatus(item.start_date, item.end_date);
 
                 html += `<tr>
                     <td>${item.prop}</td>
                     <td>${item.floor} (${item.unit})</td>
                     <td>${item.tenant}<br><small style="color:#777;">📞 ${item.phone || '-'}</small></td>
-                    <td><b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${item.start}<br>إلى: ${item.end}</small></td>
+                    <td><b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${item.start_date}<br>إلى: ${item.end_date}</small></td>
                     <td>${item.amount} ر.ع</td>
-                    <td>${filesHtml}</td>
+                    <td>${leaseFilesHtml(item.files)}</td>
                     <td>
                         <div style="display:flex; gap:5px; align-items:center;">
-                            <button onclick="restoreLease(${originalIndex})" class="btn-action-restore" title="إعادة إلى العقود النشطة">استعادة</button>
-                            <button onclick="deleteFromArchive(${originalIndex})" class="btn-action-delete" title="حذف نهائي">حذف</button>
+                            <button onclick="restoreLease(${item.id})" class="btn-action-restore" title="إعادة إلى العقود النشطة">استعادة</button>
+                            <button onclick="deleteFromArchive(${item.id})" class="btn-action-delete" title="حذف نهائي">حذف</button>
                         </div>
                     </td>
                 </tr>`;
@@ -777,7 +889,7 @@
             tbody.innerHTML = html;
 
             document.getElementById('archivePaginationText').innerText = `عرض ${start + 1} إلى ${Math.min(start + archiveRowsPerPage, filtered.length)} من ${filtered.length} مدخلات`;
-            
+
             let btnHtml = '';
             for(let i = 1; i <= totalPages; i++) {
                 btnHtml += `<button onclick="archiveCurrentPage=${i}; updateArchiveTable();" class="${archiveCurrentPage === i ? 'active' : ''}">${i}</button>`;
@@ -785,294 +897,24 @@
             document.getElementById('archivePaginationButtons').innerHTML = btnHtml;
         }
 
-        function openArchiveModal() {
+        async function refreshArchiveData() {
+            try {
+                archiveData = await apiGet('api_leases.php?action=getArchived');
+            } catch (e) {
+                archiveData = [];
+            }
+            updateArchiveTable();
+        }
+
+        async function openArchiveModal() {
             document.getElementById('archiveSearchInput').value = '';
             archiveCurrentPage = 1;
-            updateArchiveTable();
+            await refreshArchiveData();
             document.getElementById('archiveModal').style.display = 'flex';
         }
 
         function closeArchiveModal() {
             document.getElementById('archiveModal').style.display = 'none';
-        }
-
-        function openAddLeaseModal() {
-            document.getElementById('leasePropSelect').value = "";
-            document.getElementById('leaseFloorSelect').innerHTML = '<option value="" disabled selected>اختر الطابق أولاً</option>';
-            document.getElementById('leaseUnitSelect').innerHTML = '<option value="" disabled selected>اختر الوحدة أولاً</option>';
-            document.getElementById('leaseTenant').value = '';
-            document.getElementById('leasePhone').value = '';
-            document.getElementById('leaseAmount').value = '';
-            document.getElementById('leaseStartDate').value = '';
-            document.getElementById('leaseEndDate').value = '';
-            
-            document.getElementById('add-attachments-container').innerHTML = '';
-            addAttachmentRow('add-attachments-container');
-
-            document.getElementById('addLeaseModal').style.display = 'flex';
-        }
-
-        function closeAddLeaseModal() {
-            document.getElementById('addLeaseModal').style.display = 'none';
-        }
-
-        function loadFloatsForProperty(propId, floorId, unitId) {
-            let prop = document.getElementById(propId).value;
-            let floorSelect = document.getElementById(floorId);
-            floorSelect.innerHTML = '<option value="" disabled selected>اختر الطابق</option>';
-            
-            let unitSelect = document.getElementById(unitId);
-            unitSelect.innerHTML = '<option value="" disabled selected>اختر الطابق أولاً</option>';
-
-            if(samplePropertyData[prop]) {
-                samplePropertyData[prop].forEach(f => {
-                    let opt = document.createElement('option');
-                    opt.value = f.floor;
-                    opt.innerText = f.floor;
-                    floorSelect.appendChild(opt);
-                });
-            }
-        }
-
-        function loadUnitsForFloor(propId, floorId, unitId) {
-            let prop = document.getElementById(propId).value;
-            let floor = document.getElementById(floorId).value;
-            let unitSelect = document.getElementById(unitId);
-            unitSelect.innerHTML = '<option value="" disabled selected>اختر الوحدة</option>';
-
-            if(samplePropertyData[prop]) {
-                let foundFloor = samplePropertyData[prop].find(f => f.floor === floor);
-                if(foundFloor && foundFloor.units) {
-                    foundFloor.units.forEach(u => {
-                        let opt = document.createElement('option');
-                        opt.value = u;
-                        opt.innerText = u;
-                        unitSelect.appendChild(opt);
-                    });
-                }
-            }
-        }
-
-        function openEditLeaseModal(id) {
-            let row = document.getElementById('lease-row-' + id);
-            let prop = row.getAttribute('data-prop');
-            let floor = row.getAttribute('data-floor');
-            let unit = row.getAttribute('data-unit');
-            let tenant = row.getAttribute('data-tenant');
-            let phone = row.getAttribute('data-phone');
-            let amount = row.getAttribute('data-amount');
-            let start = row.getAttribute('data-start') || '';
-            let end = row.getAttribute('data-end') || '';
-            let files = JSON.parse(row.getAttribute('data-files') || '[]');
-
-            document.getElementById('editLeaseId').value = id;
-            document.getElementById('editLeasePropSelect').value = prop;
-            
-            loadFloatsForProperty('editLeasePropSelect', 'editLeaseFloorSelect', 'editLeaseUnitSelect');
-            document.getElementById('editLeaseFloorSelect').value = floor;
-            
-            loadUnitsForFloor('editLeasePropSelect', 'editLeaseFloorSelect', 'editLeaseUnitSelect');
-            document.getElementById('editLeaseUnitSelect').value = unit;
-
-            document.getElementById('editLeaseTenant').value = tenant;
-            document.getElementById('editLeasePhone').value = phone;
-            document.getElementById('editLeaseAmount').value = amount;
-            document.getElementById('editLeaseStartDate').value = start;
-            document.getElementById('editLeaseEndDate').value = end;
-
-            let attContainer = document.getElementById('edit-attachments-container');
-            attContainer.innerHTML = '';
-            
-            if(files.length > 0) {
-                files.forEach(f => {
-                    addAttachmentRow('edit-attachments-container', f);
-                });
-            } else {
-                addAttachmentRow('edit-attachments-container');
-            }
-
-            document.getElementById('editLeaseModal').style.display = 'flex';
-        }
-
-        function closeEditLeaseModal() {
-            document.getElementById('editLeaseModal').style.display = 'none';
-        }
-
-        function saveEditLeaseChanges() {
-            let id = document.getElementById('editLeaseId').value;
-            let row = document.getElementById('lease-row-' + id);
-
-            let prop = document.getElementById('editLeasePropSelect').value;
-            let floor = document.getElementById('editLeaseFloorSelect').value;
-            let unit = document.getElementById('editLeaseUnitSelect').value;
-            let tenant = document.getElementById('editLeaseTenant').value;
-            let phone = document.getElementById('editLeasePhone').value;
-            let amount = document.getElementById('editLeaseAmount').value;
-            let start = document.getElementById('editLeaseStartDate').value;
-            let end = document.getElementById('editLeaseEndDate').value;
-
-            let fileObjects = [];
-            let rows = document.querySelectorAll('#edit-attachments-container .attachment-row');
-            
-            let processed = 0;
-            if(rows.length === 0) finishSave([]);
-
-            rows.forEach((ar, idx) => {
-                let fi = ar.querySelector('.att-file');
-                let existingUrl = fi.getAttribute('data-url');
-                let existingName = fi.getAttribute('data-name');
-
-                if(fi.files.length > 0) {
-                    let file = fi.files[0];
-                    let reader = new FileReader();
-                    reader.onload = function(e) {
-                        fileObjects.push({ name: file.name, url: e.target.result });
-                        processed++;
-                        if(processed === rows.length) finishSave(fileObjects);
-                    };
-                    reader.readAsDataURL(file);
-                } else if(existingName) {
-                    fileObjects.push({ name: existingName, url: existingUrl || '#' });
-                    processed++;
-                    if(processed === rows.length) finishSave(fileObjects);
-                } else {
-                    processed++;
-                    if(processed === rows.length) finishSave(fileObjects);
-                }
-            });
-
-            function finishSave(filesArr) {
-                let res = calculateDurationAndStatus(start, end);
-
-                row.setAttribute('data-prop', prop);
-                row.setAttribute('data-floor', floor);
-                row.setAttribute('data-unit', unit);
-                row.setAttribute('data-tenant', tenant);
-                row.setAttribute('data-phone', phone);
-                row.setAttribute('data-amount', amount);
-                row.setAttribute('data-start', start);
-                row.setAttribute('data-end', end);
-                row.setAttribute('data-files', JSON.stringify(filesArr));
-
-                row.querySelector('.col-prop').innerText = prop;
-                row.querySelector('.col-unit').innerText = `${floor} (${unit})`;
-                row.querySelector('.col-tenant').innerHTML = `${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small>`;
-                row.querySelector('.col-duration').innerHTML = `<b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small>`;
-                row.querySelector('.col-amount').innerText = `${amount} ر.ع`;
-                
-                let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
-                if(filesArr.length === 0) {
-                    filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
-                } else {
-                    filesArr.forEach(f => {
-                        filesHtml += `
-                            <div style="display:flex; gap:5px; align-items:center;">
-                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 ${f.name}</a>
-                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
-                            </div>
-                        `;
-                    });
-                }
-                filesHtml += '</div>';
-                row.querySelector('.col-files').innerHTML = filesHtml;
-
-                closeEditLeaseModal();
-                alert('تم تحديث العقد وحالته بنجاح!');
-            }
-        }
-
-        function saveNewLease() {
-            let prop = document.getElementById('leasePropSelect').value;
-            let floor = document.getElementById('leaseFloorSelect').value;
-            let unit = document.getElementById('leaseUnitSelect').value;
-            let tenant = document.getElementById('leaseTenant').value;
-            let phone = document.getElementById('leasePhone').value;
-            let amount = document.getElementById('leaseAmount').value;
-            let start = document.getElementById('leaseStartDate').value;
-            let end = document.getElementById('leaseEndDate').value;
-
-            if(!prop || !floor || !unit || !tenant || !amount || !start || !end) {
-                alert('الرجاء تعبئة كافة الحقول بما فيها تواريخ بداية ونهاية العقد');
-                return;
-            }
-
-            let fileObjects = [];
-            let rows = document.querySelectorAll('#add-attachments-container .attachment-row');
-            
-            let processed = 0;
-            if(rows.length === 0) finishAdd([]);
-
-            rows.forEach((ar, idx) => {
-                let fi = ar.querySelector('.att-file');
-                if(fi.files.length > 0) {
-                    let file = fi.files[0];
-                    let reader = new FileReader();
-                    reader.onload = function(e) {
-                        fileObjects.push({ name: file.name, url: e.target.result });
-                        processed++;
-                        if(processed === rows.length) finishAdd(fileObjects);
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    processed++;
-                    if(processed === rows.length) finishAdd(fileObjects);
-                }
-            });
-
-            function finishAdd(filesArr) {
-                let tbody = document.getElementById('leasesTableBody');
-                let rowCount = tbody.rows.length + 1;
-                let res = calculateDurationAndStatus(start, end);
-
-                let newRow = document.createElement('tr');
-                newRow.id = 'lease-row-' + rowCount;
-                newRow.setAttribute('data-prop', prop);
-                newRow.setAttribute('data-floor', floor);
-                newRow.setAttribute('data-unit', unit);
-                newRow.setAttribute('data-tenant', tenant);
-                newRow.setAttribute('data-phone', phone);
-                newRow.setAttribute('data-amount', amount);
-                newRow.setAttribute('data-start', start);
-                newRow.setAttribute('data-end', end);
-                newRow.setAttribute('data-files', JSON.stringify(filesArr));
-
-                let filesHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
-                if(filesArr.length === 0) {
-                    filesHtml += '<span style="color:#999; font-style:italic;">لا توجد مرفقات</span>';
-                } else {
-                    filesArr.forEach(f => {
-                        filesHtml += `
-                            <div style="display:flex; gap:5px; align-items:center;">
-                                <a href="#" onclick="viewFile('${f.url}', '${f.name}')" style="color:#27ae60; text-decoration:none; font-weight:bold; font-size:12px; cursor:pointer;">📄 ${f.name}</a>
-                                <button onclick="viewFile('${f.url}', '${f.name}')" style="background:#f39c12; color:white; border:none; padding:1px 4px; border-radius:3px; cursor:pointer; font-size:9px;" title="معاينة">🖨️</button>
-                            </div>
-                        `;
-                    });
-                }
-                filesHtml += '</div>';
-
-                newRow.innerHTML = `
-                    <td>${rowCount}</td>
-                    <td class="col-prop">${prop}</td>
-                    <td class="col-unit">${floor} (${unit})</td>
-                    <td class="col-tenant">${tenant}<br><small style="color:#777;">📞 ${phone || '-'}</small></td>
-                    <td class="col-duration"><b>${res.text}</b> ${res.statusHtml}<br><small style="color:#666;">من: ${start}<br>إلى: ${end}</small></td>
-                    <td class="col-amount">${amount} ر.ع</td>
-                    <td class="col-files">${filesHtml}</td>
-                    <td>
-                        <div style="display:flex; gap:4px; align-items:center;">
-                            <button onclick="openEditLeaseModal(${rowCount})" class="btn-action-edit">تعديل</button>
-                            <button onclick="openRenewLeaseModal(${rowCount})" class="btn-action-renew">تجديد</button>
-                            <button onclick="archiveLease(${rowCount})" class="btn-action-archive">أرشيف</button>
-                            <button onclick="deleteLease(${rowCount})" class="btn-action-delete">حذف</button>
-                        </div>
-                    </td>
-                `;
-
-                tbody.appendChild(newRow);
-                closeAddLeaseModal();
-                alert('تمت إضافة عقد الإيجار وحالته بنجاح!');
-            }
         }
     </script>
 </body>

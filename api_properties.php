@@ -13,8 +13,8 @@ try {
         foreach($properties as &$prop) {
             $prop['floats'] = json_decode($prop['floats_json'], true) ?: [];
             
-            // حساب إجمالي الدخل الفعلي من العقود النشطة لهذا العقار
-            $incomeStmt = $pdo->prepare("SELECT SUM(amount) as total_income FROM leases WHERE prop = ?");
+            // حساب إجمالي الدخل الفعلي من العقود النشطة (غير المؤرشفة) لهذا العقار
+            $incomeStmt = $pdo->prepare("SELECT SUM(amount) as total_income FROM leases WHERE prop = ? AND archived = 0");
             $incomeStmt->execute([$prop['name']]);
             $incomeRes = $incomeStmt->fetch();
             $prop['total_income'] = $incomeRes['total_income'] ? floatval($incomeRes['total_income']) : 0;
