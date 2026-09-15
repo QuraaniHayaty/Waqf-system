@@ -114,7 +114,7 @@
         <div class="top-banner">
             <div class="banner-title">
                 <h1>بيانات عقارات الوقف</h1>
-                <p>إدارة واستيراد عقارات الوقف والربط الحقيقي المباشر بعقود الإيجار</p>
+                <p>إدارة واستيراد عقارات الوقف والربط الحقيقي المباشر بعقود الإيجار (قاعدة بيانات MySQL)</p>
             </div>
         </div>
 
@@ -138,27 +138,11 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr id="row-1" data-prop="عمارة الروضة التجارية" data-floats='[{"floor":"الطابق الأرضي","units":[{"type":"محل","no":"1"}]},{"floor":"الطابق الأول","units":[{"type":"شقة","no":"101"}]}]'>
-                        <td>1</td>
-                        <td class="prop-name">عمارة الروضة التجارية</td>
-                        <td class="prop-location">قرية الروضة - الشارع العام</td>
-                        <td class="prop-units">2 وحدة</td>
-                        <td class="prop-income" style="font-weight: bold; color: #27ae60;">50 ر.ع</td>
-                        <td>
-                            <div class="action-dropdown">
-                                <button class="action-btn" onclick="toggleMenu(event, 'menu-1')">⋮</button>
-                                <div id="menu-1" class="dropdown-menu">
-                                    <a href="#" onclick="openEditModal(1)">تعديل</a>
-                                    <a href="#" onclick="openUnitsModal(1)">وحدات الوقف</a>
-                                    <a href="#" class="delete-item">حذف</a>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
+                    <!-- يتم جلب البيانات ديناميكياً من قاعدة البيانات MySQL -->
                 </tbody>
             </table>
             <div class="pagination">
-                <span id="paginationText">عرض 1 إلى 1 من 1 مدخلات</span>
+                <span id="paginationText">جاري التحميل...</span>
                 <button>&lt;</button>
                 <button class="active">1</button>
                 <button>&gt;</button>
@@ -220,7 +204,7 @@
                 <div id="add-floats-container"></div>
             </div>
             <div class="modal-footer">
-                <button class="btn-save" onclick="saveNewProperty()">حفظ</button>
+                <button class="btn-save" onclick="saveNewProperty()">حفظ في قاعدة البيانات</button>
             </div>
         </div>
     </div>
@@ -242,7 +226,61 @@
     </div>
 
     <script>
-        let propertyCount = 1;
+        // جلب العقارات من قاعدة البيانات MySQL عند تحميل الصفحة
+        document.addEventListener("DOMContentLoaded", function() {
+            loadPropertiesFromDB();
+        });
+
+        function loadPropertiesFromDB() {
+            fetch('api_properties.php?action=getAll')
+                .then(response => response.json())
+                .then(data => {
+                    let tbody = document.getElementById('tableBody');
+                    tbody.innerHTML = '';
+                    
+                    if(data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#777;">لا توجد عقارات مسجلة حتى الآن. اضغط على "إضافة عقار" للبدء.</td></tr>';
+                        document.getElementById('paginationText').innerText = 'عرض 0 إلى 0 من 0 مدخلات';
+                        return;
+                    }
+
+                    data.forEach((prop, index) => {
+                        let totalUnitsCount = 0;
+                        if(prop.floats) {
+                            prop.floats.forEach(f => {
+                                if(f.units) totalUnitsCount += f.units.length;
+                            });
+                        }
+                        
+                        let newRow = document.createElement('tr');
+                        newRow.id = 'row-' + prop.id;
+                        newRow.setAttribute('data-floats', JSON.stringify(prop.floats || []));
+                        newRow.innerHTML = `
+                            <td>${prop.id}</td>
+                            <td class="prop-name">${prop.name}</td>
+                            <td class="prop-location">${prop.location}</td>
+                            <td class="prop-units">${totalUnitsCount} وحدة</td>
+                            <td class="prop-income" style="font-weight: bold; color: #27ae60;">0 ر.ع</td>
+                            <td>
+                                <div class="action-dropdown">
+                                    <button class="action-btn" onclick="toggleMenu(event, 'menu-${prop.id}')">⋮</button>
+                                    <div id="menu-${prop.id}" class="dropdown-menu">
+                                        <a href="#" onclick="openEditModal(${prop.id})">تعديل</a>
+                                        <a href="#" onclick="openUnitsModal(${prop.id})">وحدات الوقف</a>
+                                        <a href="#" class="delete-item" onclick="deleteProperty(${prop.id})">حذف</a>
+                                    </div>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(newRow);
+                    });
+                    document.getElementById('paginationText').innerText = `عرض 1 إلى ${data.length} من ${data.length} مدخلات`;
+                })
+                .catch(error => {
+                    console.error('خطأ في جلب البيانات:', error);
+                    document.getElementById('paginationText').innerText = 'خطأ في الاتصال بقاعدة البيانات';
+                });
+        }
 
         function toggleMenu(event, menuId) {
             event.stopPropagation();
@@ -316,7 +354,6 @@
             }
         }
 
-        /* ربط حقيقي دقيق مع العقود الفاعلة */
         function openUnitsModal(id) {
             let row = document.getElementById('row-' + id);
             let propName = row.querySelector('.prop-name').innerText;
@@ -337,12 +374,10 @@
                     } else {
                         html += '<table style="width: 100%; font-size: 13px;"><thead><tr style="background:#f1f5f9;"><th>نوع الوحدة</th><th>رقم/اسم الوحدة</th><th>حالة التأجير</th><th>القيمة الإيجارية</th><th>عقود الإيجار والمرفقات</th></tr></thead><tbody>';
                         f.units.forEach(u => {
-                            // ربط حقيقي مع عقود الإيجار النشطة (فقط محل رقم 1 له عقد نشط بـ 50 ريال، وبقية الوحدات غير مؤجرة تماماً)
-                            let isRented = (propName === 'عمارة الروضة التجارية' && f.floor === 'الطابق الأرضي' && u.no === '1');
-                            
+                            let isRented = false; 
                             let statusBadge = isRented ? '<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px; font-weight:bold;">مؤجرة 🟢</span>' : '<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:4px; font-weight:bold;">غير مؤجرة 🔴</span>';
                             let rentText = isRented ? '50 ر.ع' : '-';
-                            let filesText = isRented ? `<a href="#" onclick="viewFile('#', 'عقد_محل_1.pdf')" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد_محل_1.pdf</a>` : '<span style="color:#999; font-style:italic;">لا يوجد عقد نشط</span>';
+                            let filesText = isRented ? `<a href="#" onclick="viewFile('#', 'عقد.pdf')" style="color:#27ae60; text-decoration:none; font-weight:bold;">📄 عقد.pdf</a>` : '<span style="color:#999; font-style:italic;">لا يوجد عقد نشط</span>';
 
                             html += `<tr><td>${u.type}</td><td>${u.no}</td><td>${statusBadge}</td><td>${rentText}</td><td>${filesText}</td></tr>`;
                         });
@@ -385,14 +420,10 @@
 
         function saveEditChanges() {
             let id = document.getElementById('editPropId').value;
-            let row = document.getElementById('row-' + id);
-
             let name = document.getElementById('editPropName').value;
             let location = document.getElementById('editPropLocation').value;
 
             let floatsArr = [];
-            let totalUnitsCount = 0;
-
             document.querySelectorAll('#edit-floats-container .floor-card').forEach(fc => {
                 let floorName = fc.querySelector('.floor-name-input').value || 'طابق غير محدد';
                 let unitsArr = [];
@@ -401,19 +432,46 @@
                     let n = ur.querySelector('.unit-no').value;
                     if(t && n) {
                         unitsArr.push({ type: t, no: n });
-                        totalUnitsCount++;
                     }
                 });
                 floatsArr.push({ floor: floorName, units: unitsArr });
             });
 
-            row.querySelector('.prop-name').innerText = name;
-            row.querySelector('.prop-location').innerText = location;
-            row.querySelector('.prop-units').innerText = totalUnitsCount + ' وحدة';
-            row.setAttribute('data-floats', JSON.stringify(floatsArr));
+            // إرسال التعديل للسيرفر
+            fetch('api_properties.php?action=update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, name: name, location: location, floats: floatsArr })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.status === 'success') {
+                    closeEditModal();
+                    alert('تم تحديث العقار وحفظه في قاعدة البيانات بنجاح!');
+                    loadPropertiesFromDB();
+                } else {
+                    alert('حدث خطأ أثناء التحديث');
+                }
+            });
+        }
 
-            closeEditModal();
-            alert('تم تحديث العقار بنجاح!');
+        function deleteProperty(id) {
+            if(confirm('هل أنت متأكد من حذف هذا العقار نهائياً؟')) {
+                fetch('api_properties.php?action=delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if(res.status === 'success') {
+                        alert('تم حذف العقار بنجاح');
+                        loadPropertiesFromDB();
+                    } else {
+                        alert('حدث خطأ أثناء الحذف');
+                    }
+                });
+            }
         }
 
         function openAddModal() {
@@ -438,8 +496,6 @@
             }
 
             let floatsArr = [];
-            let totalUnitsCount = 0;
-
             document.querySelectorAll('#add-floats-container .floor-card').forEach(fc => {
                 let floorName = fc.querySelector('.floor-name-input').value || 'طابق غير محدد';
                 let unitsArr = [];
@@ -448,42 +504,27 @@
                     let n = ur.querySelector('.unit-no').value;
                     if(t && n) {
                         unitsArr.push({ type: t, no: n });
-                        totalUnitsCount++;
                     }
                 });
                 floatsArr.push({ floor: floorName, units: unitsArr });
             });
 
-            propertyCount++;
-            let newId = propertyCount;
-            let tbody = document.getElementById('tableBody');
-
-            let newRow = document.createElement('tr');
-            newRow.id = 'row-' + newId;
-            newRow.setAttribute('data-floats', JSON.stringify(floatsArr));
-            newRow.innerHTML = `
-                <td>${newId}</td>
-                <td class="prop-name">${name}</td>
-                <td class="prop-location">${location}</td>
-                <td class="prop-units">${totalUnitsCount} وحدة</td>
-                <td class="prop-income" style="font-weight: bold; color: #27ae60;">0 ر.ع</td>
-                <td>
-                    <div class="action-dropdown">
-                        <button class="action-btn" onclick="toggleMenu(event, 'menu-${newId}')">⋮</button>
-                        <div id="menu-${newId}" class="dropdown-menu">
-                            <a href="#" onclick="openEditModal(${newId})">تعديل</a>
-                            <a href="#" onclick="openUnitsModal(${newId})">وحدات الوقف</a>
-                            <a href="#" class="delete-item">حذف</a>
-                        </div>
-                    </div>
-                </td>
-            `;
-
-            tbody.appendChild(newRow);
-            document.getElementById('paginationText').innerText = `عرض 1 إلى ${newId} من ${newId} مدخلات`;
-
-            closeAddModal();
-            alert('تمت إضافة العقار بنجاح!');
+            // إرسال البيانات إلى قاعدة بيانات MySQL عبر الـ API
+            fetch('api_properties.php?action=add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, location: location, floats: floatsArr })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if(result.status === 'success') {
+                    closeAddModal();
+                    alert('تمت إضافة العقار وحفظه في قاعدة البيانات بنجاح!');
+                    loadPropertiesFromDB();
+                } else {
+                    alert('حدث خطأ أثناء الحفظ في قاعدة البيانات');
+                }
+            });
         }
     </script>
 </body>
